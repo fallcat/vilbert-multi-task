@@ -46,7 +46,7 @@ def _load_annotations(split, annotations_jsonpath, task, dataroot, clean_dataset
             remove_ids = [int(x) for x in remove_ids]
 
         for annotation in reader:
-            if task == "RetrievalCOCO":
+            if task == "RetrievalCOCO" or "RetrievalCUB":
                 image_id = annotation["id"]
             elif task == "RetrievalFlickr30k":
                 image_id = int(annotation["img_path"].split(".")[0])
@@ -246,6 +246,11 @@ class RetreivalDataset(Dataset):
 
         if self._split == "train":
             # random hard caption.
+            #print("self.train_hard_pool", self.train_hard_pool.shape)
+            #print("self.train_imgId2pool", self.train_imgId2pool.keys())
+            #print("image_id", image_id)
+            #print("image_id in self.train_imgId2pool", image_id in self.train_imgId2pool)
+            #print("self.train_imgId2pool[image_id] in self.train_hard_pool", self.train_imgId2pool[image_id] in self.train_hard_pool)
             rand_img_id_pool = self.train_hard_pool[self.train_imgId2pool[image_id]]
             pool_img_idx = int(
                 rand_img_id_pool[np.random.randint(1, len(rand_img_id_pool))]
@@ -311,6 +316,8 @@ def _load_annotationsVal(annotations_jsonpath, task):
                 image_id = annotation["id"]
             elif task == "RetrievalFlickr30k":
                 image_id = int(annotation["img_path"].split(".")[0])
+            if task == "RetrievalCUB":
+                image_id = annotation["id"]
 
             image_entries[image_id] = 1
 
@@ -361,10 +368,16 @@ class RetreivalDatasetVal(Dataset):
         # print('loading entries from %s' %(cap_cache_path))
         # self._entries = cPickle.load(open(cap_cache_path, "rb"))
         #
-        self.features_all = np.zeros((1000, self._max_region_num, 2048))
-        self.spatials_all = np.zeros((1000, self._max_region_num, 5))
-        self.image_mask_all = np.zeros((1000, self._max_region_num))
+        if task == "RetrievalCUB":
+            self.features_all = np.zeros((len(self._image_entries), self._max_region_num, 2048))
+            self.spatials_all = np.zeros((len(self._image_entries), self._max_region_num, 5))
+            self.image_mask_all = np.zeros((len(self._image_entries), self._max_region_num))
+        else: 
+            self.features_all = np.zeros((1000, self._max_region_num, 2048))
+            self.spatials_all = np.zeros((1000, self._max_region_num, 5))
+            self.image_mask_all = np.zeros((1000, self._max_region_num))
 
+        #print("self._image_entries", len(self._image_entries))
         for i, image_id in enumerate(self._image_entries):
             features, num_boxes, boxes, _ = self._image_features_reader[image_id]
 

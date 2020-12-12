@@ -870,6 +870,7 @@ class PreTrainedModel(nn.Module):
             model = BertModel.from_pretrained('./tf_model/my_tf_checkpoint.ckpt.index', from_tf=True, config=config)
         """
 
+        print("kwargs", kwargs)
         config = kwargs.pop("config", None)
         state_dict = kwargs.pop("state_dict", None)
         cache_dir = kwargs.pop("cache_dir", None)
