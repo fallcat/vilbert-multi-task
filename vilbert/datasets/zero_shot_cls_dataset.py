@@ -14,6 +14,9 @@ import jsonlines
 import sys
 import pdb
 
+def assert_eq(real, expected):
+    assert real == expected, "%s (true) vs %s (expected)" % (real, expected)
+
 
 def _load_annotationsVal(annotations_jsonpath, task):
 
