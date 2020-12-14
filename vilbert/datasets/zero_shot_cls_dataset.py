@@ -28,7 +28,7 @@ def _load_annotationsVal(annotations_jsonpath, task):
                 image_id = annotation["id"]
             elif task == "RetrievalFlickr30k":
                 image_id = int(annotation["img_path"].split(".")[0])
-            if task == "RetrievalCUB":
+            if task == "ZeroShotCUB":
                 image_id = annotation["id"]
 
             image_entries[image_id] = 1

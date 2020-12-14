@@ -725,9 +725,12 @@ def EvaluatingModel(
         )
 
     elif task_cfg[task_id]["process"] in ["retrieval"]:
+        print("----- process in retrieval -----")
         max_num_bbox = features.size(1)
         num_options = question.size(1)
+        print("features.shape", features.shape)
         features = features.view(-1, features.size(2), features.size(3))
+        print("features.shape", features.shape)
         spatials = spatials.view(-1, spatials.size(2), spatials.size(3))
         image_mask = image_mask.view(-1, image_mask.size(2))
         question = question.view(-1, question.size(2))
