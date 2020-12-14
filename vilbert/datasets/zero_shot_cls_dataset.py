@@ -172,6 +172,7 @@ class ZeroShotClsDatasetVal(Dataset):
 
         entry = self._caption_entries[caption_idx]
         caption = entry["token"]
+        print("caption", caption)
         input_mask = entry["input_mask"]
         segment_ids = entry["segment_ids"]
 
