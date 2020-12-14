@@ -27,10 +27,6 @@ def _load_annotationsVal(annotations_jsonpath, task):
         caption_entries = []
 
         for annotation in reader:
-            if task == "RetrievalCOCO":
-                image_id = annotation["id"]
-            elif task == "RetrievalFlickr30k":
-                image_id = int(annotation["img_path"].split(".")[0])
             if task == "ZeroShotCUB":
                 image_id = annotation["id"]
 
@@ -154,19 +150,25 @@ class ZeroShotClsDatasetVal(Dataset):
 
         # we iterate through every caption here.
         caption_idx = int(index / 2)
-        image_idx = index % 2
+        image_idx = caption_idx
+        # image_idx = index % 2
 
-        if image_idx == 0:
-            image_entries = self._image_entries[:500]
-            features_all = self.features_all[:500]
-            spatials_all = self.spatials_all[:500]
-            image_mask_all = self.image_mask_all[:500]
+        image_entries = self._image_entries[image_idx:image_idx+1]
+        features_all = self.features_all[image_idx:image_idx+1]
+        spatials_all = self.spatials_all[image_idx:image_idx+1]
+        image_mask_all = self.image_mask_all[image_idx:image_idx+1]
 
-        else:
-            image_entries = self._image_entries[500:]
-            features_all = self.features_all[500:]
-            spatials_all = self.spatials_all[500:]
-            image_mask_all = self.image_mask_all[500:]
+        # if image_idx == 0:
+        #     image_entries = self._image_entries[:500]
+        #     features_all = self.features_all[:500]
+        #     spatials_all = self.spatials_all[:500]
+        #     image_mask_all = self.image_mask_all[:500]
+        #
+        # else:
+        #     image_entries = self._image_entries[500:]
+        #     features_all = self.features_all[500:]
+        #     spatials_all = self.spatials_all[500:]
+        #     image_mask_all = self.image_mask_all[500:]
 
         entry = self._caption_entries[caption_idx]
         caption = entry["token"]
