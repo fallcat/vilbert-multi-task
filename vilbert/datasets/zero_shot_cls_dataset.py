@@ -35,7 +35,9 @@ def _load_annotationsVal(annotations_jsonpath, task):
             for sentences in annotation["sentences"]:
                 caption_entries.append({"caption": sentences, "image_id": image_id})
 
+    print("image_entries 1", image_entries)
     image_entries = [*image_entries]
+    print("image_entries", image_entries)
 
     return image_entries, caption_entries
 
@@ -149,11 +151,13 @@ class ZeroShotClsDatasetVal(Dataset):
     def __getitem__(self, index):
 
         # we iterate through every caption here.
-        caption_idx = int(index / 2)
-        image_idx = caption_idx
+        image_item = self._image_entries
+        image_idx = index
         # image_idx = index % 2
 
+        print("self._image_entries", len(self._image_entries))
         image_entries = self._image_entries[image_idx:image_idx+1]
+        print("image_entries", image_entries)
         features_all = self.features_all[image_idx:image_idx+1]
         spatials_all = self.spatials_all[image_idx:image_idx+1]
         image_mask_all = self.image_mask_all[image_idx:image_idx+1]
@@ -173,9 +177,9 @@ class ZeroShotClsDatasetVal(Dataset):
         captions = []
         input_masks = []
         segment_idss = []
-        for idx in range(caption_idx, caption_idx+5):
-            # entry = self._caption_entries[caption_idx]
-            entry = self._caption_entries[idx]
+        target_all = torch.zeros(len(self._caption_entries))
+        caption_idxs = list(range(len(self._caption_entries)))
+        for i, entry in enumerate(self._caption_entries):
             caption = entry["token"]
             print("caption", caption.shape)
             input_mask = entry["input_mask"]
@@ -185,23 +189,25 @@ class ZeroShotClsDatasetVal(Dataset):
             captions.append(caption)
             input_masks.append(input_mask)
             segment_idss.append(segment_ids)
-
-        target_all = torch.zeros(500)
-        for i, image_id in enumerate(image_entries):
-            if image_id == entry["image_id"]:
+            if image_entries == entry["image_id"]:
                 target_all[i] = 1
+
+        # target_all = torch.zeros(500)
+        # for i, image_id in enumerate(image_entries):
+        #     if image_id == entry["image_id"]:
+        #         target_all[i] = 1
 
         return (
             features_all,
             spatials_all,
             image_mask_all,
-            torch.stack(captions, dim=0),
-            torch.stack(input_masks, dim=0),
-            torch.stack(segment_idss, dim=0),
+            captions,
+            input_masks,
+            segment_idss,
             target_all,
-            caption_idx,
+            caption_idxs,
             image_idx,
         )
 
     def __len__(self):
-        return len(self._caption_entries) * 2
+        return len(self._image_entries) * 2

@@ -258,21 +258,19 @@ def main():
         results = []
         others = []
 
-        score_matrix = np.zeros((args.num_captions, args.num_images))
-        target_matrix = np.zeros((args.num_captions, args.num_images))
-        rank_matrix = np.ones((args.num_captions)) * args.num_images
+        score_matrix = np.zeros((args.num_images, args.num_captions))
+        target_matrix = np.zeros((args.num_images, args.num_captions))
+        rank_matrix = np.ones((args.num_images)) * args.num_captions
         count = 0
 
         for i, batch in enumerate(task_dataloader_val[task_id]):
             batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
-            features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (
+            features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
                 batch
             )
             #import pdb
             #pdb.set_trace()
-            task_tokens = (
-                question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
-            )
+
 
             if task_id in ["TASK7", "TASK8", "TASK19"]:
                 batch_size = features.size(0)
@@ -281,26 +279,15 @@ def main():
                 image_mask = image_mask.squeeze(0)
 
             with torch.no_grad():
-                if args.zero_shot:
-                    _, _, vil_logit, _ = model(
-                        question,
-                        features,
-                        spatials,
-                        segment_ids,
-                        input_mask,
-                        image_mask,
-                        task_ids=task_tokens,
+                for idx in range(len(questions)):
+                    question = questions[idx]
+                    input_mask = input_masks[idx]
+                    segment_ids = segment_idss[idx]
+                    caption_idx = caption_idxs[idx]
+
+                    task_tokens = (
+                        question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
                     )
-
-                    score_matrix[
-                        caption_idx, image_idx * 500 : (image_idx + 1) * 500
-                    ] = (torch.softmax(vil_logit, dim=1)[:, 0].view(-1).cpu().numpy())
-                    target_matrix[
-                        caption_idx, image_idx * 500 : (image_idx + 1) * 500
-                    ] = (target.view(-1).float().cpu().numpy())
-
-                else:
-                    torch.cuda.empty_cache()
                     _, _, vil_logit, _, _, _, _, _, _, _ = model(
                         question,
                         features,
@@ -310,16 +297,11 @@ def main():
                         image_mask,
                         task_ids=task_tokens,
                     )
-                    #print("score_matrix", score_matrix.shape)
-                    #print("caption_idx", caption_idx)
-                    #print("image_idx", image_idx)
-                    #print("vil_logit", vil_logit.shape)
+
                     score_matrix[
-                        caption_idx, image_idx * 500 : (image_idx + 1) * 500
+                        image_idx, caption_idx
                     ] = (vil_logit.view(-1).cpu().numpy())
-                    target_matrix[
-                        caption_idx, image_idx * 500 : (image_idx + 1) * 500
-                    ] = (target.view(-1).float().cpu().numpy())
+                target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
 
                 if image_idx.item() == 1:
                     rank = np.where(
