@@ -177,11 +177,11 @@ class ZeroShotClsDatasetVal(Dataset):
             # entry = self._caption_entries[caption_idx]
             entry = self._caption_entries[idx]
             caption = entry["token"]
-            print("caption", caption)
+            print("caption", caption.shape)
             input_mask = entry["input_mask"]
-            print("input_mask", input_mask)
+            print("input_mask", input_mask.shape)
             segment_ids = entry["segment_ids"]
-            print("segment_ids", segment_ids)
+            print("segment_ids", segment_ids.shape)
             captions.append(caption)
             input_masks.append(input_mask)
             segment_idss.append(segment_ids)
@@ -195,9 +195,9 @@ class ZeroShotClsDatasetVal(Dataset):
             features_all,
             spatials_all,
             image_mask_all,
-            captions,
-            input_masks,
-            segment_idss,
+            torch.stack(captions, dim=0),
+            torch.stack(input_masks, dim=0),
+            torch.stack(segment_idss, dim=0),
             target_all,
             caption_idx,
             image_idx,
