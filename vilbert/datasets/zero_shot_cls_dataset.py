@@ -170,11 +170,21 @@ class ZeroShotClsDatasetVal(Dataset):
         #     spatials_all = self.spatials_all[500:]
         #     image_mask_all = self.image_mask_all[500:]
 
-        entry = self._caption_entries[caption_idx]
-        caption = entry["token"]
-        print("caption", caption)
-        input_mask = entry["input_mask"]
-        segment_ids = entry["segment_ids"]
+        captions = []
+        input_masks = []
+        segment_idss = []
+        for idx in range(caption_idx, caption_idx+5):
+            # entry = self._caption_entries[caption_idx]
+            entry = self._caption_entries[idx]
+            caption = entry["token"]
+            print("caption", caption)
+            input_mask = entry["input_mask"]
+            print("input_mask", input_mask)
+            segment_ids = entry["segment_ids"]
+            print("segment_ids", segment_ids)
+            captions.append(caption)
+            input_masks.append(input_mask)
+            segment_idss.append(segment_ids)
 
         target_all = torch.zeros(500)
         for i, image_id in enumerate(image_entries):
@@ -185,9 +195,9 @@ class ZeroShotClsDatasetVal(Dataset):
             features_all,
             spatials_all,
             image_mask_all,
-            caption,
-            input_mask,
-            segment_ids,
+            captions,
+            input_masks,
+            segment_idss,
             target_all,
             caption_idx,
             image_idx,
