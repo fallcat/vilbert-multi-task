@@ -123,6 +123,10 @@ class ZeroShotClsDatasetVal(Dataset):
         self.image_mask_all = torch.Tensor(self.image_mask_all).long()
         self.spatials_all = torch.Tensor(self.spatials_all).float()
 
+    @property
+    def num_captions(self):
+        return len(self._caption_entries_unique)
+
     def tokenize(self):
         """Tokenizes the captions.
 
