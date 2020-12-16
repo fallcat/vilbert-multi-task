@@ -172,9 +172,9 @@ class ZeroShotClsDatasetVal(Dataset):
         image_id = self._image_entries[image_idx]
         # image_idx = index % 2
 
-        print("self._image_entries", len(self._image_entries))
+        # print("self._image_entries", len(self._image_entries))
         image_entries = self._image_entries[image_idx:image_idx+1]
-        print("image_entries", image_entries)
+        # print("image_entries", image_entries)
         features_all = self.features_all[image_idx:image_idx+1]
         spatials_all = self.spatials_all[image_idx:image_idx+1]
         image_mask_all = self.image_mask_all[image_idx:image_idx+1]

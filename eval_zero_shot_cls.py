@@ -278,7 +278,7 @@ def main():
             image_idx = image_idx.cuda(device=device, non_blocking=True)
             #import pdb
             #pdb.set_trace()
-            print(f"batch {i}")
+            # print(f"batch {i}")
 
 
             if task_id in ["TASK7", "TASK8", "TASK19"]:

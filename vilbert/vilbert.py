@@ -1376,8 +1376,6 @@ class BertModel(BertPreTrainedModel):
 
         embedding_output = self.embeddings(input_txt, token_type_ids, task_ids)
         v_embedding_output = self.v_embeddings(input_imgs, image_loc)
-        print("embedding_output", embedding_output.shape)
-        print("v_embedding_output", v_embedding_output.shape)
         encoded_layers_t, encoded_layers_v, all_attention_mask = self.encoder(
             embedding_output,
             v_embedding_output,
