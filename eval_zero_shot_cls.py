@@ -269,6 +269,7 @@ def main():
             )
             #import pdb
             #pdb.set_trace()
+            print(f"batch {i}")
 
 
             if task_id in ["TASK7", "TASK8", "TASK19"]:
