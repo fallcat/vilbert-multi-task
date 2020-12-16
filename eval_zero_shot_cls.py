@@ -263,7 +263,7 @@ def main():
         rank_matrix = np.ones((args.num_images)) * task_datasets_val[task_id].num_captions
 
         for i, batch in enumerate(task_dataloader_val[task_id]):
-            batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
+            # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
             features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
                 batch
             )
