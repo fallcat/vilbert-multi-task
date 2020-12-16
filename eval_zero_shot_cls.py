@@ -257,7 +257,7 @@ def main():
     for task_id in task_ids:
         results = []
         others = []
-        print("task_datasets_val dict", task_datasets_val[task_id].__dict__)
+        # print("task_datasets_val dict", task_datasets_val[task_id].__dict__)
         score_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
         target_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
         rank_matrix = np.ones((args.num_images)) * task_datasets_val[task_id].num_captions
