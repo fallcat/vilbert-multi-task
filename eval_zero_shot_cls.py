@@ -10,6 +10,7 @@ import os
 import random
 from io import open
 import numpy as np
+from tqdm import tqdm
 
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
@@ -262,7 +263,7 @@ def main():
         target_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
         rank_matrix = np.ones((args.num_images)) * task_datasets_val[task_id].num_captions
 
-        for i, batch in enumerate(task_dataloader_val[task_id]):
+        for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
             # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
             features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
                 batch
