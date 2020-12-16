@@ -257,10 +257,10 @@ def main():
     for task_id in task_ids:
         results = []
         others = []
-
-        score_matrix = np.zeros((args.num_images, task_datasets_val.num_captions))
-        target_matrix = np.zeros((args.num_images, task_datasets_val.num_captions))
-        rank_matrix = np.ones((args.num_images)) * task_datasets_val.num_captions
+        print("task_datasets_val dict", task_datasets_val.__dict__)
+        score_matrix = np.zeros((args.num_images, task_datasets_val.num_captions()))
+        target_matrix = np.zeros((args.num_images, task_datasets_val.num_captions()))
+        rank_matrix = np.ones((args.num_images)) * task_datasets_val.num_captions()
 
         for i, batch in enumerate(task_dataloader_val[task_id]):
             batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
