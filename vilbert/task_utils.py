@@ -599,7 +599,7 @@ def LoadDatasetEval(args, task_cfg, ids):
             task_datasets_val[task],
             shuffle=False,
             batch_size=batch_size,
-            num_workers=10,
+            num_workers=num_workers,
             pin_memory=True,
         )
 
