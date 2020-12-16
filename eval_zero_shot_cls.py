@@ -267,6 +267,15 @@ def main():
             features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
                 batch
             )
+            features = features.cuda(device=device, non_blocking=True)
+            spatials = spatials.cuda(device=device, non_blocking=True)
+            image_mask = image_mask.cuda(device=device, non_blocking=True)
+            questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
+            input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
+            segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
+            caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
+            targets = targets.cuda(device=device, non_blocking=True)
+            image_idx = image_idx.cuda(device=device, non_blocking=True)
             #import pdb
             #pdb.set_trace()
             print(f"batch {i}")
