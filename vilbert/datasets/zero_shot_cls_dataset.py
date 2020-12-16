@@ -14,6 +14,8 @@ import jsonlines
 import sys
 import pdb
 
+from collections import defaultdict
+
 def assert_eq(real, expected):
     assert real == expected, "%s (true) vs %s (expected)" % (real, expected)
 
@@ -25,21 +27,30 @@ def _load_annotationsVal(annotations_jsonpath, task):
         # Build an index which maps image id with a list of caption annotations.
         image_entries = {}
         caption_entries = []
+        caption_entries_by_class = defaultdict(list)
+        image_classes = {}
 
         for annotation in reader:
             if task == "ZeroShotCUB":
                 image_id = annotation["id"]
 
             image_entries[image_id] = 1
+            image_classes[image_id] = annotation["class_label"]
 
             for sentences in annotation["sentences"]:
                 caption_entries.append({"caption": sentences, "image_id": image_id})
+                if sentences not in caption_entries_by_class[annotation["class_label"]]:
+                    caption_entries_by_class[annotation["class_label"]].append(sentences)
 
-    print("image_entries 1", image_entries)
+    caption_entries_unique = []
+    caption_classes = []
+    for c in caption_entries_by_class:
+        caption_entries_unique.extend([{"caption": sentences, "class_label": c} for sentences in caption_entries_by_class[c]])
+        caption_classes.extend([c] * len(caption_entries_by_class[c]))
+
     image_entries = [*image_entries]
-    print("image_entries", image_entries)
 
-    return image_entries, caption_entries
+    return image_entries, caption_entries, caption_entries_unique, caption_classes, image_classes
 
 
 class ZeroShotClsDatasetVal(Dataset):
@@ -59,7 +70,8 @@ class ZeroShotClsDatasetVal(Dataset):
         max_region_num: int = 101,
     ):
         # All the keys in `self._entries` would be present in `self._image_features_reader`
-        self._image_entries, self._caption_entries = _load_annotationsVal(
+        self._image_entries, self._caption_entries, self._caption_entries_unique, self._caption_classes, self._image_classes = \
+            _load_annotationsVal(
             annotations_jsonpath, task
         )
         self._image_features_reader = image_features_reader
@@ -117,7 +129,7 @@ class ZeroShotClsDatasetVal(Dataset):
         This will add caption_tokens in each entry of the dataset.
         -1 represents nil, and should be treated as padding_idx in embedding.
         """
-        for entry in self._caption_entries:
+        for entry in self._caption_entries_unique:
             tokens = self._tokenizer.encode(entry["caption"])
             tokens = tokens[: self._max_seq_length - 2]
             tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
@@ -138,7 +150,7 @@ class ZeroShotClsDatasetVal(Dataset):
             entry["segment_ids"] = segment_ids
 
     def tensorize(self):
-        for entry in self._caption_entries:
+        for entry in self._caption_entries_unique:
             token = torch.from_numpy(np.array(entry["token"])).long()
             entry["token"] = token
 
@@ -153,6 +165,7 @@ class ZeroShotClsDatasetVal(Dataset):
         # we iterate through every caption here.
         image_item = self._image_entries
         image_idx = index
+        image_id = self._image_entries[image_idx]
         # image_idx = index % 2
 
         print("self._image_entries", len(self._image_entries))
@@ -177,9 +190,9 @@ class ZeroShotClsDatasetVal(Dataset):
         captions = []
         input_masks = []
         segment_idss = []
-        target_all = torch.zeros(len(self._caption_entries))
-        caption_idxs = list(range(len(self._caption_entries)))
-        for i, entry in enumerate(self._caption_entries):
+        target_all = torch.zeros(len(self._caption_entries_unique))
+        caption_idxs = list(range(len(self._caption_entries_unique)))
+        for i, entry in enumerate(self._caption_entries_unique):
             caption = entry["token"]
             print("caption", caption.shape)
             input_mask = entry["input_mask"]
@@ -189,8 +202,12 @@ class ZeroShotClsDatasetVal(Dataset):
             captions.append(caption)
             input_masks.append(input_mask)
             segment_idss.append(segment_ids)
-            if image_entries == entry["image_id"]:
+            if entry["class_label"] == self._image_classes[image_id]:
                 target_all[i] = 1
+
+        print("image_id", image_id)
+        print("target_all", target_all)
+        print("target_all sum", sum(target_all))
 
         # target_all = torch.zeros(500)
         # for i, image_id in enumerate(image_entries):

@@ -258,10 +258,9 @@ def main():
         results = []
         others = []
 
-        score_matrix = np.zeros((args.num_images, args.num_captions))
-        target_matrix = np.zeros((args.num_images, args.num_captions))
-        rank_matrix = np.ones((args.num_images)) * args.num_captions
-        count = 0
+        score_matrix = np.zeros((args.num_images, len(task_datasets_val._caption_entries_unique)))
+        target_matrix = np.zeros((args.num_images, len(task_datasets_val._caption_entries_unique)))
+        rank_matrix = np.ones((args.num_images)) * len(task_datasets_val._caption_entries_unique)
 
         for i, batch in enumerate(task_dataloader_val[task_id]):
             batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
@@ -303,43 +302,44 @@ def main():
                     ] = (vil_logit.view(-1).cpu().numpy())
                 target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
 
-                if image_idx.item() == 1:
-                    rank = np.where(
-                        (
-                            np.argsort(-score_matrix[caption_idx])
-                            == np.where(target_matrix[caption_idx] == 1)[0][0]
-                        )
-                        == 1
-                    )[0][0]
-                    rank_matrix[caption_idx] = rank
+                # if image_idx.item() == 1:
+                #     rank = np.where(
+                #         (
+                #             np.argsort(-score_matrix[caption_idx])
+                #             == np.where(target_matrix[caption_idx] == 1)[0][0]
+                #         )
+                #         == 1
+                #     )[0][0]
+                #     rank_matrix[caption_idx] = rank
+                #
+                #     rank_matrix_tmp = rank_matrix[: caption_idx + 1]
+                #     r1 = 100.0 * np.sum(rank_matrix_tmp < 1) / len(rank_matrix_tmp)
+                #     r5 = 100.0 * np.sum(rank_matrix_tmp < 5) / len(rank_matrix_tmp)
+                #     r10 = 100.0 * np.sum(rank_matrix_tmp < 10) / len(rank_matrix_tmp)
+                #
+                #     medr = np.floor(np.median(rank_matrix_tmp) + 1)
+                #     meanr = np.mean(rank_matrix_tmp) + 1
+                #     print(
+                #         "%d Final r1:%.3f, r5:%.3f, r10:%.3f, mder:%.3f, meanr:%.3f"
+                #         % (count, r1, r5, r10, medr, meanr)
+                #     )
+                #
+                #     results.append(np.argsort(-score_matrix[caption_idx]).tolist()[:20])
 
-                    rank_matrix_tmp = rank_matrix[: caption_idx + 1]
-                    r1 = 100.0 * np.sum(rank_matrix_tmp < 1) / len(rank_matrix_tmp)
-                    r5 = 100.0 * np.sum(rank_matrix_tmp < 5) / len(rank_matrix_tmp)
-                    r10 = 100.0 * np.sum(rank_matrix_tmp < 10) / len(rank_matrix_tmp)
+        # r1 = 100.0 * np.sum(rank_matrix < 1) / len(rank_matrix)
+        # r5 = 100.0 * np.sum(rank_matrix < 5) / len(rank_matrix)
+        # r10 = 100.0 * np.sum(rank_matrix < 10) / len(rank_matrix)
+        #
+        # medr = np.floor(np.median(rank_matrix) + 1)
+        # meanr = np.mean(rank_matrix) + 1
 
-                    medr = np.floor(np.median(rank_matrix_tmp) + 1)
-                    meanr = np.mean(rank_matrix_tmp) + 1
-                    print(
-                        "%d Final r1:%.3f, r5:%.3f, r10:%.3f, mder:%.3f, meanr:%.3f"
-                        % (count, r1, r5, r10, medr, meanr)
-                    )
-
-                    results.append(np.argsort(-score_matrix[caption_idx]).tolist()[:20])
-            count += 1
-
-        r1 = 100.0 * np.sum(rank_matrix < 1) / len(rank_matrix)
-        r5 = 100.0 * np.sum(rank_matrix < 5) / len(rank_matrix)
-        r10 = 100.0 * np.sum(rank_matrix < 10) / len(rank_matrix)
-
-        medr = np.floor(np.median(rank_matrix) + 1)
-        meanr = np.mean(rank_matrix) + 1
+        results = {"score_matrix": score_matrix, "target_matrix": target_matrix}
 
         print("************************************************")
-        print(
-            "Final r1:%.3f, r5:%.3f, r10:%.3f, mder:%.3f, meanr:%.3f"
-            % (r1, r5, r10, medr, meanr)
-        )
+        # print(
+        #     "Final r1:%.3f, r5:%.3f, r10:%.3f, mder:%.3f, meanr:%.3f"
+        #     % (r1, r5, r10, medr, meanr)
+        # )
         print("************************************************")
 
         if args.split:
@@ -347,7 +347,7 @@ def main():
         else:
             json_path = os.path.join(savePath, task_cfg[task_id]["val_split"])
         json.dump(results, open(json_path + "_result.json", "w"))
-        json.dump(others, open(json_path + "_others.json", "w"))
+        # json.dump(others, open(json_path + "_others.json", "w"))
 
 
 if __name__ == "__main__":
