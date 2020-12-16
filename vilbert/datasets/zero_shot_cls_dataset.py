@@ -198,20 +198,20 @@ class ZeroShotClsDatasetVal(Dataset):
         caption_idxs = list(range(len(self._caption_entries_unique)))
         for i, entry in enumerate(self._caption_entries_unique):
             caption = entry["token"]
-            print("caption", caption.shape)
+            # print("caption", caption.shape)
             input_mask = entry["input_mask"]
-            print("input_mask", input_mask.shape)
+            # print("input_mask", input_mask.shape)
             segment_ids = entry["segment_ids"]
-            print("segment_ids", segment_ids.shape)
+            # print("segment_ids", segment_ids.shape)
             captions.append(caption)
             input_masks.append(input_mask)
             segment_idss.append(segment_ids)
             if entry["class_label"] == self._image_classes[image_id]:
                 target_all[i] = 1
 
-        print("image_id", image_id)
-        print("target_all", target_all)
-        print("target_all sum", sum(target_all))
+        # print("image_id", image_id)
+        # print("target_all", target_all)
+        # print("target_all sum", sum(target_all))
 
         # target_all = torch.zeros(500)
         # for i, image_id in enumerate(image_entries):
