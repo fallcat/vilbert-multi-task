@@ -81,7 +81,7 @@ DatasetMapEval = {
     "VCR_QA-R": VCRDataset,
     "RetrievalCOCO": RetreivalDatasetVal,
     "RetrievalFlickr30k": RetreivalDatasetVal,
-    "RetrievalCUB": RetreivalDatasetVal,
+    "RetrievalCUB": ZeroShotClsDatasetVal,
     "refcoco": ReferExpressionDataset,
     "refcoco+": ReferExpressionDataset,
     "refcocog": ReferExpressionDataset,
