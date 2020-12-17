@@ -359,6 +359,7 @@ def main():
             json_path = os.path.join(savePath, args.split)
         else:
             json_path = os.path.join(savePath, task_cfg[task_id]["val_split"])
+        print(f"saved to {json_path}_result.json)
         json.dump(results, open(json_path + "_result.json", "w"))
         # json.dump(others, open(json_path + "_others.json", "w"))
 
