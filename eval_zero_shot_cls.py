@@ -5,6 +5,7 @@
 
 import argparse
 import json
+import jsonlines
 import logging
 import os
 import random
@@ -263,86 +264,57 @@ def main():
         target_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
         rank_matrix = np.ones((args.num_images)) * task_datasets_val[task_id].num_captions
 
-        # for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
-        #     # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
-        #     features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
-        #         batch
-        #     )
-        #     features = features.cuda(device=device, non_blocking=True)
-        #     spatials = spatials.cuda(device=device, non_blocking=True)
-        #     image_mask = image_mask.cuda(device=device, non_blocking=True)
-        #     questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
-        #     input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
-        #     segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
-        #     caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
-        #     targets = targets.cuda(device=device, non_blocking=True)
-        #     image_idx = image_idx.cuda(device=device, non_blocking=True)
-        #     #import pdb
-        #     #pdb.set_trace()
-        #     # print(f"batch {i}")
-        #
-        #
-        #     if task_id in ["TASK7", "TASK8", "TASK19"]:
-        #         batch_size = features.size(0)
-        #         features = features.squeeze(0)
-        #         spatials = spatials.squeeze(0)
-        #         image_mask = image_mask.squeeze(0)
+        if args.split:
+            json_path = os.path.join(savePath, args.split)
+        else:
+            json_path = os.path.join(savePath, task_cfg[task_id]["val_split"])
 
-            # with torch.no_grad():
-            #     for idx in range(len(questions)):
-            #         question = questions[idx]
-            #         input_mask = input_masks[idx]
-            #         segment_ids = segment_idss[idx]
-            #         caption_idx = caption_idxs[idx]
-            #
-            #         task_tokens = (
-            #             question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
-            #         )
-            #         _, _, vil_logit, _, _, _, _, _, _, _ = model(
-            #             question,
-            #             features,
-            #             spatials,
-            #             segment_ids,
-            #             input_mask,
-            #             image_mask,
-            #             task_ids=task_tokens,
-            #         )
-            #
-            #         score_matrix[
-            #             image_idx, caption_idx
-            #         ] = (vil_logit.view(-1).cpu().numpy())
-            #     target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
+        for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
+            # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
+            features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
+                batch
+            )
+            features = features.cuda(device=device, non_blocking=True)
+            spatials = spatials.cuda(device=device, non_blocking=True)
+            image_mask = image_mask.cuda(device=device, non_blocking=True)
+            questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
+            input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
+            segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
+            caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
+            targets = targets.cuda(device=device, non_blocking=True)
+            image_idx = image_idx.cuda(device=device, non_blocking=True)
 
-                # if image_idx.item() == 1:
-                #     rank = np.where(
-                #         (
-                #             np.argsort(-score_matrix[caption_idx])
-                #             == np.where(target_matrix[caption_idx] == 1)[0][0]
-                #         )
-                #         == 1
-                #     )[0][0]
-                #     rank_matrix[caption_idx] = rank
-                #
-                #     rank_matrix_tmp = rank_matrix[: caption_idx + 1]
-                #     r1 = 100.0 * np.sum(rank_matrix_tmp < 1) / len(rank_matrix_tmp)
-                #     r5 = 100.0 * np.sum(rank_matrix_tmp < 5) / len(rank_matrix_tmp)
-                #     r10 = 100.0 * np.sum(rank_matrix_tmp < 10) / len(rank_matrix_tmp)
-                #
-                #     medr = np.floor(np.median(rank_matrix_tmp) + 1)
-                #     meanr = np.mean(rank_matrix_tmp) + 1
-                #     print(
-                #         "%d Final r1:%.3f, r5:%.3f, r10:%.3f, mder:%.3f, meanr:%.3f"
-                #         % (count, r1, r5, r10, medr, meanr)
-                #     )
-                #
-                #     results.append(np.argsort(-score_matrix[caption_idx]).tolist()[:20])
+            features = features.squeeze(0)
+            spatials = spatials.squeeze(0)
+            image_mask = image_mask.squeeze(0)
+            with open(json_path + "_result.jsonl", "w") as jsonl_file:
+                with torch.no_grad():
+                    for idx in range(len(questions)):
+                        question = questions[idx]
+                        input_mask = input_masks[idx]
+                        segment_ids = segment_idss[idx]
+                        caption_idx = caption_idxs[idx]
 
-        # r1 = 100.0 * np.sum(rank_matrix < 1) / len(rank_matrix)
-        # r5 = 100.0 * np.sum(rank_matrix < 5) / len(rank_matrix)
-        # r10 = 100.0 * np.sum(rank_matrix < 10) / len(rank_matrix)
-        #
-        # medr = np.floor(np.median(rank_matrix) + 1)
-        # meanr = np.mean(rank_matrix) + 1
+                        task_tokens = (
+                            question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
+                        )
+                        _, _, vil_logit, _, _, _, _, _, _, _ = model(
+                            question,
+                            features,
+                            spatials,
+                            segment_ids,
+                            input_mask,
+                            image_mask,
+                            task_ids=task_tokens,
+                        )
+
+                        score_matrix[
+                            image_idx, caption_idx
+                        ] = (vil_logit.view(-1).cpu().numpy())
+                    target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
+                    intermediate_results = {"score_matrix": score_matrix[image_idx].tolist(),
+                                            "target_matrix": target_matrix[image_idx].tolist()}
+                    jsonl_file.write(json.dumps(intermediate_results) + "\n")
 
         print(f'score matrix shape: {score_matrix.shape}')
         print(f'target matrix shape: {target_matrix.shape}')
@@ -355,10 +327,6 @@ def main():
         # )
         print("************************************************")
 
-        if args.split:
-            json_path = os.path.join(savePath, args.split)
-        else:
-            json_path = os.path.join(savePath, task_cfg[task_id]["val_split"])
         print(f"saved to {json_path}_result.json")
         json.dump(results, open(json_path + "_result.json", "w"))
         # json.dump(others, open(json_path + "_others.json", "w"))
