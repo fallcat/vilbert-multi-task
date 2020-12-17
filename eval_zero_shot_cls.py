@@ -269,25 +269,27 @@ def main():
         else:
             json_path = os.path.join(savePath, task_cfg[task_id]["val_split"])
 
-        for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
-            # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
-            features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
-                batch
-            )
-            features = features.cuda(device=device, non_blocking=True)
-            spatials = spatials.cuda(device=device, non_blocking=True)
-            image_mask = image_mask.cuda(device=device, non_blocking=True)
-            questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
-            input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
-            segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
-            caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
-            targets = targets.cuda(device=device, non_blocking=True)
-            image_idx = image_idx.cuda(device=device, non_blocking=True)
+        count = 0
+        with open(json_path + "_result.jsonl", "w") as jsonl_file:
+            for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
+                # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
+                features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
+                    batch
+                )
+                features = features.cuda(device=device, non_blocking=True)
+                spatials = spatials.cuda(device=device, non_blocking=True)
+                image_mask = image_mask.cuda(device=device, non_blocking=True)
+                questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
+                input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
+                segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
+                caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
+                targets = targets.cuda(device=device, non_blocking=True)
+                image_idx = image_idx.cuda(device=device, non_blocking=True)
 
-            features = features.squeeze(0)
-            spatials = spatials.squeeze(0)
-            image_mask = image_mask.squeeze(0)
-            with open(json_path + "_result.jsonl", "w") as jsonl_file:
+                features = features.squeeze(0)
+                spatials = spatials.squeeze(0)
+                image_mask = image_mask.squeeze(0)
+
                 with torch.no_grad():
                     for idx in range(len(questions)):
                         question = questions[idx]
@@ -315,6 +317,10 @@ def main():
                     intermediate_results = {"score_matrix": score_matrix[image_idx].tolist(),
                                             "target_matrix": target_matrix[image_idx].tolist()}
                     jsonl_file.write(json.dumps(intermediate_results) + "\n")
+                count += 1
+                if count >= 10:
+                    break
+
 
         print(f'score matrix shape: {score_matrix.shape}')
         print(f'target matrix shape: {target_matrix.shape}')

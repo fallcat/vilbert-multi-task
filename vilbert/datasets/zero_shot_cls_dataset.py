@@ -74,8 +74,8 @@ class ZeroShotClsDatasetVal(Dataset):
             _load_annotationsVal(
             annotations_jsonpath, task
         )
-        print(f'num images: {self._image_entries}')
-        print(f'num captions: {self._caption_entries_unique}')
+        print(f'num images: {len(self._image_entries)}')
+        print(f'num captions: {len(self._caption_entries_unique)}')
         self._image_features_reader = image_features_reader
         self._tokenizer = tokenizer
 
