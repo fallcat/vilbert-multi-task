@@ -288,30 +288,30 @@ def main():
                 spatials = spatials.squeeze(0)
                 image_mask = image_mask.squeeze(0)
 
-            with torch.no_grad():
-                for idx in range(len(questions)):
-                    question = questions[idx]
-                    input_mask = input_masks[idx]
-                    segment_ids = segment_idss[idx]
-                    caption_idx = caption_idxs[idx]
-
-                    task_tokens = (
-                        question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
-                    )
-                    _, _, vil_logit, _, _, _, _, _, _, _ = model(
-                        question,
-                        features,
-                        spatials,
-                        segment_ids,
-                        input_mask,
-                        image_mask,
-                        task_ids=task_tokens,
-                    )
-
-                    score_matrix[
-                        image_idx, caption_idx
-                    ] = (vil_logit.view(-1).cpu().numpy())
-                target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
+            # with torch.no_grad():
+            #     for idx in range(len(questions)):
+            #         question = questions[idx]
+            #         input_mask = input_masks[idx]
+            #         segment_ids = segment_idss[idx]
+            #         caption_idx = caption_idxs[idx]
+            #
+            #         task_tokens = (
+            #             question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
+            #         )
+            #         _, _, vil_logit, _, _, _, _, _, _, _ = model(
+            #             question,
+            #             features,
+            #             spatials,
+            #             segment_ids,
+            #             input_mask,
+            #             image_mask,
+            #             task_ids=task_tokens,
+            #         )
+            #
+            #         score_matrix[
+            #             image_idx, caption_idx
+            #         ] = (vil_logit.view(-1).cpu().numpy())
+            #     target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
 
                 # if image_idx.item() == 1:
                 #     rank = np.where(

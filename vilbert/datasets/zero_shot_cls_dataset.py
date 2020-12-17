@@ -231,4 +231,4 @@ class ZeroShotClsDatasetVal(Dataset):
         )
 
     def __len__(self):
-        return len(self._image_entries) * 2
+        return len(self._image_entries)
