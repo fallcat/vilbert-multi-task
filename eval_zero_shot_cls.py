@@ -257,19 +257,14 @@ def main():
     model.eval()
     # when run evaluate, we run each task sequentially.
     for task_id in task_ids:
-        results = []
-        others = []
-        # print("task_datasets_val dict", task_datasets_val[task_id].__dict__)
         score_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
         target_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
-        rank_matrix = np.ones((args.num_images)) * task_datasets_val[task_id].num_captions
 
         if args.split:
             json_path = os.path.join(savePath, args.split)
         else:
             json_path = os.path.join(savePath, task_cfg[task_id]["val_split"])
 
-        count = 0
         with open(json_path + "_result.jsonl", "w") as jsonl_file:
             for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
                 # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
@@ -317,9 +312,6 @@ def main():
                     intermediate_results = {"score_matrix": score_matrix[image_idx].tolist(),
                                             "target_matrix": target_matrix[image_idx].tolist()}
                     jsonl_file.write(json.dumps(intermediate_results) + "\n")
-                count += 1
-                if count >= 10:
-                    break
 
 
         print(f'score matrix shape: {score_matrix.shape}')
