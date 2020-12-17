@@ -263,30 +263,30 @@ def main():
         target_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
         rank_matrix = np.ones((args.num_images)) * task_datasets_val[task_id].num_captions
 
-        for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
-            # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
-            features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
-                batch
-            )
-            features = features.cuda(device=device, non_blocking=True)
-            spatials = spatials.cuda(device=device, non_blocking=True)
-            image_mask = image_mask.cuda(device=device, non_blocking=True)
-            questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
-            input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
-            segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
-            caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
-            targets = targets.cuda(device=device, non_blocking=True)
-            image_idx = image_idx.cuda(device=device, non_blocking=True)
-            #import pdb
-            #pdb.set_trace()
-            # print(f"batch {i}")
-
-
-            if task_id in ["TASK7", "TASK8", "TASK19"]:
-                batch_size = features.size(0)
-                features = features.squeeze(0)
-                spatials = spatials.squeeze(0)
-                image_mask = image_mask.squeeze(0)
+        # for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
+        #     # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
+        #     features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
+        #         batch
+        #     )
+        #     features = features.cuda(device=device, non_blocking=True)
+        #     spatials = spatials.cuda(device=device, non_blocking=True)
+        #     image_mask = image_mask.cuda(device=device, non_blocking=True)
+        #     questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
+        #     input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
+        #     segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
+        #     caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
+        #     targets = targets.cuda(device=device, non_blocking=True)
+        #     image_idx = image_idx.cuda(device=device, non_blocking=True)
+        #     #import pdb
+        #     #pdb.set_trace()
+        #     # print(f"batch {i}")
+        #
+        #
+        #     if task_id in ["TASK7", "TASK8", "TASK19"]:
+        #         batch_size = features.size(0)
+        #         features = features.squeeze(0)
+        #         spatials = spatials.squeeze(0)
+        #         image_mask = image_mask.squeeze(0)
 
             # with torch.no_grad():
             #     for idx in range(len(questions)):
@@ -344,7 +344,9 @@ def main():
         # medr = np.floor(np.median(rank_matrix) + 1)
         # meanr = np.mean(rank_matrix) + 1
 
-        results = {"score_matrix": score_matrix, "target_matrix": target_matrix}
+        print(f'score matrix shape: {score_matrix.shape}')
+        print(f'target matrix shape: {target_matrix.shape}')
+        results = {"score_matrix": score_matrix.tolist(), "target_matrix": target_matrix.tolist()}
 
         print("************************************************")
         # print(
