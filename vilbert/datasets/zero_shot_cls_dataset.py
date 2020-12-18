@@ -337,7 +337,7 @@ class ZeroShotClsDatasetValBatch(Dataset):
         spatials_all = self.spatials_all
         image_mask_all = self.image_mask_all
 
-        entry = self._caption_entries[caption_idx]
+        entry = self._caption_entries_unique[caption_idx]
         caption = entry["token"]
         input_mask = entry["input_mask"]
         segment_ids = entry["segment_ids"]
