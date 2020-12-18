@@ -31,8 +31,7 @@ def _load_annotationsVal(annotations_jsonpath, task):
         image_classes = {}
 
         for annotation in reader:
-            if task == "ZeroShotCUB" or task == "RetrievalCUB":
-                image_id = annotation["id"]
+            image_id = annotation["id"]
 
             image_entries[image_id] = 1
             image_classes[image_id] = annotation["class_label"]
