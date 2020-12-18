@@ -328,19 +328,19 @@ def main():
                     spatials = spatials.squeeze(0)
                     image_mask = image_mask.squeeze(0)
 
-                    # with torch.no_grad():
-                    #     _, _, vil_logit, _, _, _, _, _, _, _ = model(
-                    #         question,
-                    #         features,
-                    #         spatials,
-                    #         segment_ids,
-                    #         input_mask,
-                    #         image_mask,
-                    #         task_ids=task_tokens,
-                    #     )
-                    #
-                    #     score_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (vil_logit.view(-1).cpu().numpy())
-                    #     target_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (target.view(-1).float().cpu().numpy())
+                    with torch.no_grad():
+                        _, _, vil_logit, _, _, _, _, _, _, _ = model(
+                            question,
+                            features,
+                            spatials,
+                            segment_ids,
+                            input_mask,
+                            image_mask,
+                            task_ids=task_tokens,
+                        )
+
+                        score_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (vil_logit.view(-1).cpu().numpy())
+                        target_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (target.view(-1).float().cpu().numpy())
 
                 else:
                     raise ValueError("Unknown task name")
