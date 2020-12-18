@@ -362,5 +362,5 @@ class ZeroShotClsDatasetValBatch(Dataset):
         )
 
     def __len__(self):
-        num_batches = int(len(self._image_entries) / 500)
+        num_batches = math.ceil(len(self._image_entries) / 500)
         return len(self._caption_entries_unique) * num_batches
