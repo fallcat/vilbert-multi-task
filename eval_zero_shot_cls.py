@@ -340,8 +340,8 @@ def main():
                         )
                         print("vil_logit", vil_logit)
 
-                        score_matrix[:, caption_idx] = (vil_logit.view(-1).cpu().numpy())
-                        target_matrix[:, caption_idx] = (target.view(-1).float().cpu().numpy())
+                        score_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (vil_logit.view(-1).cpu().numpy())
+                        target_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (target.view(-1).float().cpu().numpy())
 
                         intermediate_results = {"score_matrix": score_matrix[caption_idx].tolist(),
                                                 "target_matrix": target_matrix[caption_idx].tolist()}

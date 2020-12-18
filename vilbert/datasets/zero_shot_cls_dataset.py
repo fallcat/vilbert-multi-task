@@ -330,12 +330,13 @@ class ZeroShotClsDatasetValBatch(Dataset):
     def __getitem__(self, index):
 
         caption_idx = index
-        image_idx = 0
+        num_batches = int(len(self._image_entries) / 500)
+        image_idx = index % num_batches
 
-        image_entries = self._image_entries
-        features_all = self.features_all
-        spatials_all = self.spatials_all
-        image_mask_all = self.image_mask_all
+        image_entries = self._image_entries[image_idx * 500:(image_idx + 1) * 500]
+        features_all = self.features_all[image_idx * 500:(image_idx + 1) * 500]
+        spatials_all = self.spatials_all[image_idx * 500:(image_idx + 1) * 500]
+        image_mask_all = self.image_mask_all[image_idx * 500:(image_idx + 1) * 500]
 
         entry = self._caption_entries_unique[caption_idx]
         caption = entry["token"]
@@ -360,4 +361,4 @@ class ZeroShotClsDatasetValBatch(Dataset):
         )
 
     def __len__(self):
-        return len(self._caption_entries_unique)
+        return len(self._caption_entries_unique) * 6
