@@ -330,7 +330,6 @@ class ZeroShotClsDatasetValBatch(Dataset):
 
     def __getitem__(self, index):
         num_batches = math.ceil(len(self._image_entries) / 500)
-        print("num_batches", num_batches)
         caption_idx = int(index / num_batches)
         image_idx = index % num_batches
 
