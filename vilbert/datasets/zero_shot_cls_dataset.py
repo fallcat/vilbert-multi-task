@@ -343,7 +343,7 @@ class ZeroShotClsDatasetValBatch(Dataset):
         input_mask = entry["input_mask"]
         segment_ids = entry["segment_ids"]
 
-        target_all = torch.zeros(len(self._image_entries))
+        target_all = torch.zeros(len(image_entries))
         for i, image_id in enumerate(image_entries):
             if entry["class_label"] == self._image_classes[image_id]:
                 target_all[i] = 1
