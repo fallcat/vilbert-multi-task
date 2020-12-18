@@ -268,33 +268,66 @@ def main():
         with open(json_path + "_result.jsonl", "w") as jsonl_file:
             for i, batch in tqdm(enumerate(task_dataloader_val[task_id])):
                 # batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
-                features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
-                    batch
-                )
-                features = features.cuda(device=device, non_blocking=True)
-                spatials = spatials.cuda(device=device, non_blocking=True)
-                image_mask = image_mask.cuda(device=device, non_blocking=True)
-                questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
-                input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
-                segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
-                caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
-                targets = targets.cuda(device=device, non_blocking=True)
-                image_idx = image_idx.cuda(device=device, non_blocking=True)
+                if task_cfg[task]["name"] == "ZeroShotCUB":
+                    features, spatials, image_mask, questions, input_masks, segment_idss, targets, caption_idxs, image_idx = (
+                        batch
+                    )
+                    features = features.cuda(device=device, non_blocking=True)
+                    spatials = spatials.cuda(device=device, non_blocking=True)
+                    image_mask = image_mask.cuda(device=device, non_blocking=True)
+                    questions = list(t.cuda(device=device, non_blocking=True) for t in questions)
+                    input_masks = list(t.cuda(device=device, non_blocking=True) for t in input_masks)
+                    segment_idss = list(t.cuda(device=device, non_blocking=True) for t in segment_idss)
+                    caption_idxs = list(t.cuda(device=device, non_blocking=True) for t in caption_idxs)
+                    targets = targets.cuda(device=device, non_blocking=True)
+                    image_idx = image_idx.cuda(device=device, non_blocking=True)
 
-                features = features.squeeze(0)
-                spatials = spatials.squeeze(0)
-                image_mask = image_mask.squeeze(0)
+                    features = features.squeeze(0)
+                    spatials = spatials.squeeze(0)
+                    image_mask = image_mask.squeeze(0)
 
-                with torch.no_grad():
-                    for idx in range(len(questions)):
-                        question = questions[idx]
-                        input_mask = input_masks[idx]
-                        segment_ids = segment_idss[idx]
-                        caption_idx = caption_idxs[idx]
+                    with torch.no_grad():
+                        for idx in range(len(questions)):
+                            question = questions[idx]
+                            input_mask = input_masks[idx]
+                            segment_ids = segment_idss[idx]
+                            caption_idx = caption_idxs[idx]
 
-                        task_tokens = (
-                            question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
-                        )
+                            task_tokens = (
+                                question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
+                            )
+                            _, _, vil_logit, _, _, _, _, _, _, _ = model(
+                                question,
+                                features,
+                                spatials,
+                                segment_ids,
+                                input_mask,
+                                image_mask,
+                                task_ids=task_tokens,
+                            )
+
+                            score_matrix[
+                                image_idx, caption_idx
+                            ] = (vil_logit.view(-1).cpu().numpy())
+                        target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
+                        intermediate_results = {"score_matrix": score_matrix[image_idx].tolist(),
+                                                "target_matrix": target_matrix[image_idx].tolist()}
+                        jsonl_file.write(json.dumps(intermediate_results) + "\n")
+                elif task_cfg[task]["name"] == "ZeroShotCUBBatch":
+                    batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
+                    features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (
+                        batch
+                    )
+
+                    task_tokens = (
+                        question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
+                    )
+
+                    features = features.squeeze(0)
+                    spatials = spatials.squeeze(0)
+                    image_mask = image_mask.squeeze(0)
+
+                    with torch.no_grad():
                         _, _, vil_logit, _, _, _, _, _, _, _ = model(
                             question,
                             features,
@@ -305,13 +338,12 @@ def main():
                             task_ids=task_tokens,
                         )
 
-                        score_matrix[
-                            image_idx, caption_idx
-                        ] = (vil_logit.view(-1).cpu().numpy())
-                    target_matrix[image_idx] = (targets.view(-1).float().cpu().numpy())
-                    intermediate_results = {"score_matrix": score_matrix[image_idx].tolist(),
-                                            "target_matrix": target_matrix[image_idx].tolist()}
-                    jsonl_file.write(json.dumps(intermediate_results) + "\n")
+                        score_matrix[:, caption_idx] = (vil_logit.view(-1).cpu().numpy())
+                        target_matrix[:, caption_idx] = (target.view(-1).float().cpu().numpy())
+
+                        intermediate_results = {"score_matrix": score_matrix[caption_idx].tolist(),
+                                                "target_matrix": target_matrix[caption_idx].tolist()}
+                        jsonl_file.write(json.dumps(intermediate_results) + "\n")
 
 
         print(f'score matrix shape: {score_matrix.shape}')
