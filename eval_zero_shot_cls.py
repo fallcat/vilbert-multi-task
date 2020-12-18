@@ -314,6 +314,7 @@ def main():
                                                 "target_matrix": target_matrix[image_idx].tolist()}
                         jsonl_file.write(json.dumps(intermediate_results) + "\n")
                 elif task_cfg[task]["name"] == "ZeroShotCUBBatch":
+                    torch.cuda.empty_cache()
                     batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
                     features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (
                         batch
