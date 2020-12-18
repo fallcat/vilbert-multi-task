@@ -328,9 +328,8 @@ class ZeroShotClsDatasetValBatch(Dataset):
             entry["segment_ids"] = segment_ids
 
     def __getitem__(self, index):
-
-        caption_idx = index
         num_batches = int(len(self._image_entries) / 500)
+        caption_idx = int(index / num_batches)
         image_idx = index % num_batches
 
         image_entries = self._image_entries[image_idx * 500:(image_idx + 1) * 500]
