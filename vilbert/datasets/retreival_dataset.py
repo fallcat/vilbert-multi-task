@@ -7,6 +7,7 @@ import json
 from typing import Any, Dict, List
 import random
 import os
+import math
 
 import torch
 from torch.utils.data import Dataset
@@ -443,7 +444,7 @@ class RetreivalDatasetVal(Dataset):
     def __getitem__(self, index):
 
         # we iterate through every caption here.
-        caption_idx = int(index / 2)
+        caption_idx = math.ceil(index / 2)
         image_idx = index % 2
 
         if image_idx == 0:
