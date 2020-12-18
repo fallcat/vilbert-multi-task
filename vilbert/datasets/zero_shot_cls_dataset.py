@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 import _pickle as cPickle
+import  math
 
 from pytorch_transformers.tokenization_bert import BertTokenizer
 from ._image_features_reader import ImageFeaturesH5Reader
@@ -328,7 +329,7 @@ class ZeroShotClsDatasetValBatch(Dataset):
             entry["segment_ids"] = segment_ids
 
     def __getitem__(self, index):
-        num_batches = int(len(self._image_entries) / 500)
+        num_batches = math.ceil(len(self._image_entries) / 500)
         print("num_batches", num_batches)
         caption_idx = int(index / num_batches)
         image_idx = index % num_batches
