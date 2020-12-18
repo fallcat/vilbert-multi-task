@@ -129,6 +129,10 @@ class ZeroShotClsDatasetVal(Dataset):
     def num_captions(self):
         return len(self._caption_entries_unique)
 
+    @property
+    def num_images(self):
+        return len(self._image_entries)
+
     def tokenize(self):
         """Tokenizes the captions.
 
@@ -282,6 +286,10 @@ class ZeroShotClsDatasetValBatch(Dataset):
     @property
     def num_captions(self):
         return len(self._caption_entries_unique)
+
+    @property
+    def num_images(self):
+        return len(self._image_entries)
 
     def tokenize(self):
         """Tokenizes the captions.

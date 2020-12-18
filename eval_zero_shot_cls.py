@@ -257,8 +257,8 @@ def main():
     model.eval()
     # when run evaluate, we run each task sequentially.
     for task_id in task_ids:
-        score_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
-        target_matrix = np.zeros((args.num_images, task_datasets_val[task_id].num_captions))
+        score_matrix = np.zeros((task_datasets_val[task_id].num_images, task_datasets_val[task_id].num_captions))
+        target_matrix = np.zeros((task_datasets_val[task_id].num_images, task_datasets_val[task_id].num_captions))
 
         if args.split:
             json_path = os.path.join(savePath, args.split)
@@ -337,6 +337,7 @@ def main():
                             image_mask,
                             task_ids=task_tokens,
                         )
+                        print("vil_logit", vil_logit)
 
                         score_matrix[:, caption_idx] = (vil_logit.view(-1).cpu().numpy())
                         target_matrix[:, caption_idx] = (target.view(-1).float().cpu().numpy())
@@ -344,6 +345,8 @@ def main():
                         intermediate_results = {"score_matrix": score_matrix[caption_idx].tolist(),
                                                 "target_matrix": target_matrix[caption_idx].tolist()}
                         jsonl_file.write(json.dumps(intermediate_results) + "\n")
+                else:
+                    raise ValueError("Unknown task name")
 
 
         print(f'score matrix shape: {score_matrix.shape}')
