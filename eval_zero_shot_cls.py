@@ -338,14 +338,10 @@ def main():
                             image_mask,
                             task_ids=task_tokens,
                         )
-                        print("vil_logit", vil_logit)
 
                         score_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (vil_logit.view(-1).cpu().numpy())
                         target_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (target.view(-1).float().cpu().numpy())
 
-                        intermediate_results = {"score_matrix": score_matrix[caption_idx].tolist(),
-                                                "target_matrix": target_matrix[caption_idx].tolist()}
-                        jsonl_file.write(json.dumps(intermediate_results) + "\n")
                 else:
                     raise ValueError("Unknown task name")
 
