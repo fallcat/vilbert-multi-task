@@ -147,8 +147,6 @@ def main():
         action="store_true",
         help="whether to use task specific tokens for the multi-task learning.",
     )
-    parser.add_argument("--num_images", default=1000, type=int, help="number of images in the test set")
-    parser.add_argument("--num_captions", default=5000, type=int, help="number of captions in the test set")
     args = parser.parse_args()
     with open("vilbert_tasks.yml", "r") as f:
         task_cfg = edict(yaml.safe_load(f))
@@ -222,7 +220,7 @@ def main():
     config.fast_mode = True
     if args.zero_shot:
         model = BertForMultiModalPreTraining.from_pretrained(
-            args.from_pretrained, config=config
+            args.from_pretrained, config
         )
     else:
         model = VILBertForVLTasks.from_pretrained(
@@ -258,9 +256,9 @@ def main():
         results = []
         others = []
 
-        score_matrix = np.zeros((args.num_captions, args.num_images))
-        target_matrix = np.zeros((args.num_captions, args.num_images))
-        rank_matrix = np.ones((args.num_captions)) * args.num_images
+        score_matrix = np.zeros((5000, 1000))
+        target_matrix = np.zeros((5000, 1000))
+        rank_matrix = np.ones((5000)) * 1000
         count = 0
 
         for i, batch in enumerate(task_dataloader_val[task_id]):
@@ -268,13 +266,11 @@ def main():
             features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (
                 batch
             )
-            #import pdb
-            #pdb.set_trace()
             task_tokens = (
                 question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
             )
 
-            if task_id in ["TASK7", "TASK8", "TASK19"]:
+            if task_id in ["TASK7", "TASK8"]:
                 batch_size = features.size(0)
                 features = features.squeeze(0)
                 spatials = spatials.squeeze(0)
@@ -300,8 +296,7 @@ def main():
                     ] = (target.view(-1).float().cpu().numpy())
 
                 else:
-                    torch.cuda.empty_cache()
-                    _, _, vil_logit, _, _, _, _, _, _, _ = model(
+                    _, _, vil_logit, _, _, _, _, _, _ = model(
                         question,
                         features,
                         spatials,
@@ -310,10 +305,6 @@ def main():
                         image_mask,
                         task_ids=task_tokens,
                     )
-                    #print("score_matrix", score_matrix.shape)
-                    #print("caption_idx", caption_idx)
-                    #print("image_idx", image_idx)
-                    #print("vil_logit", vil_logit.shape)
                     score_matrix[
                         caption_idx, image_idx * 500 : (image_idx + 1) * 500
                     ] = (vil_logit.view(-1).cpu().numpy())
