@@ -296,7 +296,7 @@ def main():
                     ] = (target.view(-1).float().cpu().numpy())
 
                 else:
-                    _, _, vil_logit, _, _, _, _, _, _ = model(
+                    _, _, vil_logit, _, _, _, _, _, _, _ = model(
                         question,
                         features,
                         spatials,
