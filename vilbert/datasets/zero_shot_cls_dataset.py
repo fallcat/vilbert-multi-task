@@ -212,6 +212,8 @@ class ZeroShotClsDatasetVal(Dataset):
 
 
 class ZeroShotClsDatasetValBatch(Dataset):
+    BATCH_SIZE = 250
+
     def __init__(
         self,
         task: str,
@@ -329,14 +331,14 @@ class ZeroShotClsDatasetValBatch(Dataset):
             entry["segment_ids"] = segment_ids
 
     def __getitem__(self, index):
-        num_batches = math.ceil(len(self._image_entries) / 500)
+        num_batches = math.ceil(len(self._image_entries) / ZeroShotClsDatasetValBatch.BATCH_SIZE)
         caption_idx = int(index / num_batches)
         image_idx = index % num_batches
 
-        image_entries = self._image_entries[image_idx * 500:(image_idx + 1) * 500]
-        features_all = self.features_all[image_idx * 500:(image_idx + 1) * 500]
-        spatials_all = self.spatials_all[image_idx * 500:(image_idx + 1) * 500]
-        image_mask_all = self.image_mask_all[image_idx * 500:(image_idx + 1) * 500]
+        image_entries = self._image_entries[image_idx * ZeroShotClsDatasetValBatch.BATCH_SIZE:(image_idx + 1) * ZeroShotClsDatasetValBatch.BATCH_SIZE]
+        features_all = self.features_all[image_idx * ZeroShotClsDatasetValBatch.BATCH_SIZE:(image_idx + 1) * ZeroShotClsDatasetValBatch.BATCH_SIZE]
+        spatials_all = self.spatials_all[image_idx * ZeroShotClsDatasetValBatch.BATCH_SIZE:(image_idx + 1) * ZeroShotClsDatasetValBatch.BATCH_SIZE]
+        image_mask_all = self.image_mask_all[image_idx * ZeroShotClsDatasetValBatch.BATCH_SIZE:(image_idx + 1) * ZeroShotClsDatasetValBatch.BATCH_SIZE]
 
         entry = self._caption_entries_unique[caption_idx]
         caption = entry["token"]
@@ -361,5 +363,5 @@ class ZeroShotClsDatasetValBatch(Dataset):
         )
 
     def __len__(self):
-        num_batches = math.ceil(len(self._image_entries) / 500)
+        num_batches = math.ceil(len(self._image_entries) / ZeroShotClsDatasetValBatch.BATCH_SIZE)
         return len(self._caption_entries_unique) * num_batches

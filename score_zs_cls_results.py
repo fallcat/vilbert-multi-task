@@ -69,7 +69,9 @@ target_matrix = np.array(results['target_matrix'])
 print(sum(score_matrix[:,-1] != 0))
 
 print("---- best 1 ----")
-image_classes_pred = caption_classes[score_matrix[:,:-80].argmax(axis=1)]
+print("caption_classes", caption_classes.shape)
+print("score_matrix", score_matrix.shape)
+image_classes_pred = caption_classes[score_matrix.argmax(axis=1)]
 print("image_classes_pred", len(image_classes_pred))
 print("image_classes", len(image_classes))
 accuracy = sum(image_classes_pred == image_classes) / image_classes.shape[0]
@@ -115,19 +117,24 @@ print("top 1 any ", sum(target_ranks.max(axis=1) >= len(caption_classes) - 1) / 
 print("top 5 any ", sum(target_ranks.max(axis=1) >= len(caption_classes) - 6) / pred.shape[0])
 print("top 10 any ", sum(target_ranks.max(axis=1) >= len(caption_classes) - 11) / pred.shape[0])
 
-print("--------")
-print(image_classes[0])
-print(image_classes[0])
-print(caption_classes.tolist().index(image_classes[0]))
-for i in range(ranks.shape[0]):
-    rank = ranks[i, caption_classes == image_classes[i]]
-    if sum(rank < 1000) > 0:
-        print("sum(rank < 1000)", sum(rank < 1000))
-        print("ranks[:, caption_classes == c]", ranks[i, caption_classes == image_classes[i]])
-        print(np.array(caption_entries_unique)[caption_classes == image_classes[i]])
-
-print("caption_entries_unique", len(caption_entries_unique))
-
-print("-------")
-print("2", np.array(caption_entries_unique)[caption_classes == 2])
-print("7", np.array(caption_entries_unique)[caption_classes == 7])
+# print("--------")
+# print(image_classes[0])
+# print(image_classes[0])
+# print(caption_classes.tolist().index(image_classes[0]))
+# count = 0
+# for i in range(ranks.shape[0]):
+#     rank = ranks[i, caption_classes == image_classes[i]]
+#     if sum(rank < 200) > 0:
+#         print("i", i)
+#         print("sum(rank < 200)", sum(rank < 200))
+#         print("ranks[:, caption_classes == c]", ranks[i, caption_classes == image_classes[i]])
+#         print(np.array(caption_entries_unique)[caption_classes == image_classes[i]])
+#         count += 1
+#
+# print("count", count)
+# print("caption_entries_unique", len(caption_entries_unique))
+#
+# print("-------")
+# print("6", np.array(caption_entries_unique)[caption_classes == 6])
+# print("14", np.array(caption_entries_unique)[caption_classes == 14])
+# print("166", np.array(caption_entries_unique)[caption_classes == 166])
