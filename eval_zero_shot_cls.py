@@ -25,6 +25,8 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+
+
 from vilbert.task_utils import (
     LoadDatasetEval,
     LoadLosses,
@@ -45,6 +47,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+BATCH_SIZE = 250
 
 def main():
     parser = argparse.ArgumentParser()
@@ -339,8 +342,8 @@ def main():
                             task_ids=task_tokens,
                         )
 
-                        score_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (vil_logit.view(-1).cpu().numpy())
-                        target_matrix[image_idx * 500:(image_idx + 1) * 500, caption_idx] = (target.view(-1).float().cpu().numpy())
+                        score_matrix[image_idx * BATCH_SIZE:(image_idx + 1) * BATCH_SIZE, caption_idx] = (vil_logit.view(-1).cpu().numpy())
+                        target_matrix[image_idx * BATCH_SIZE:(image_idx + 1) * BATCH_SIZE, caption_idx] = (target.view(-1).float().cpu().numpy())
 
                 else:
                     raise ValueError("Unknown task name")
