@@ -143,9 +143,13 @@ class RetreivalDataset(Dataset):
         """
         for entry in self._entries:
 
+            print('entry["caption"]', entry["caption"])
             tokens = self._tokenizer.encode(entry["caption"])
             tokens = tokens[: self._max_seq_length - 2]
+            print("tokens", tokens)
             tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
+            print("tokens2", tokens)
+            exit()
 
             segment_ids = [0] * len(tokens)
             input_mask = [1] * len(tokens)
@@ -410,13 +414,13 @@ class RetreivalDatasetVal(Dataset):
         -1 represents nil, and should be treated as padding_idx in embedding.
         """
         for entry in self._caption_entries:
-            print('entry["caption"]', entry["caption"])
+            # print('entry["caption"]', entry["caption"])
             tokens = self._tokenizer.encode(entry["caption"])
             tokens = tokens[: self._max_seq_length - 2]
-            print("tokens", tokens)
+            # print("tokens", tokens)
             tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
-            print("tokens2", tokens)
-            exit()
+            # print("tokens2", tokens)
+            # exit()
 
             segment_ids = [0] * len(tokens)
             input_mask = [1] * len(tokens)
