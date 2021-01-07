@@ -135,6 +135,6 @@ print("top 10 any ", sum(target_ranks.max(axis=1) >= len(caption_classes) - 11) 
 # print("caption_entries_unique", len(caption_entries_unique))
 #
 # print("-------")
-# print("6", np.array(caption_entries_unique)[caption_classes == 6])
 # print("14", np.array(caption_entries_unique)[caption_classes == 14])
 # print("166", np.array(caption_entries_unique)[caption_classes == 166])
+# print("180", np.array(caption_entries_unique)[caption_classes == 180])
