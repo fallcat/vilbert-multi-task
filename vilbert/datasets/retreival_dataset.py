@@ -149,6 +149,7 @@ class RetreivalDataset(Dataset):
             print("tokens", tokens)
             tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
             print("tokens2", tokens)
+            print("_tokenizer cls token", self._tokenizer.cls_token)
             exit()
 
             segment_ids = [0] * len(tokens)
