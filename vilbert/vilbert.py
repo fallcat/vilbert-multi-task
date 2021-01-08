@@ -1324,8 +1324,6 @@ class BertModel(BertPreTrainedModel):
         output_all_attention_masks=False,
         cls_token_code=None
     ):
-        print("input_txt", input_txt.shape)
-        print("cls_token_code", cls_token_code)
         if attention_mask is None:
             attention_mask = torch.ones_like(input_txt)
         if token_type_ids is None:
@@ -1401,20 +1399,11 @@ class BertModel(BertPreTrainedModel):
         sequence_output_t = encoded_layers_t[-1]
         sequence_output_v = encoded_layers_v[-1]
 
-        print("sequence_output_t", sequence_output_t.shape)
         pooled_output_t = self.t_pooler(sequence_output_t, cls_indices=cls_indices)
         if cls_token_code is not None:
             mask = (input_txt == cls_token_code).unsqueeze(-1)
-            print("pooled_output_t", pooled_output_t.shape)
-            print("mask", mask.shape)
             pooled_output_t = torch.cat((pooled_output_t[:,0:1], pooled_output_t[:,2:]), dim=1)
-            print("pooled_output_t2", pooled_output_t.shape)
-            print("(pooled_output_t * mask).sum(dim=1)", (pooled_output_t * mask).sum(dim=1).shape)
-            print("mask.sum(dim=1)", mask.sum(dim=1).shape)
             pooled_output_t = (pooled_output_t * mask).sum(dim=1) / mask.sum(dim=1)
-            print("pooled_output_t", pooled_output_t.shape)
-            print("mask", mask.shape)
-            exit()
         pooled_output_v = self.v_pooler(sequence_output_v)
 
         if not output_all_encoded_layers:
