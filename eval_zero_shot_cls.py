@@ -152,6 +152,11 @@ def main():
         action="store_true",
         help="whether to use task specific tokens for the multi-task learning.",
     )
+    parser.add_argument(
+        "--multi_cls",
+        action="store_true",
+        help="whether to use multiple cls tokens.",
+    )
     parser.add_argument("--num_images", default=1000, type=int, help="number of images in the test set")
     parser.add_argument("--num_captions", default=5000, type=int, help="number of captions in the test set")
     args = parser.parse_args()
@@ -236,6 +241,8 @@ def main():
             num_labels=num_labels,
             default_gpu=default_gpu,
         )
+        if args.multi_cls:
+            model.set_multi_cls()
 
     task_losses = LoadLosses(args, task_cfg, args.tasks.split("-"))
     model.to(device)
@@ -317,6 +324,34 @@ def main():
                                                 "target_matrix": target_matrix[image_idx].tolist()}
                         jsonl_file.write(json.dumps(intermediate_results) + "\n")
                 elif task_cfg[task]["name"] == "ZeroShotCUBBatch":
+                    torch.cuda.empty_cache()
+                    batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
+                    features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (
+                        batch
+                    )
+
+                    task_tokens = (
+                        question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
+                    )
+
+                    features = features.squeeze(0)
+                    spatials = spatials.squeeze(0)
+                    image_mask = image_mask.squeeze(0)
+
+                    with torch.no_grad():
+                        _, _, vil_logit, _, _, _, _, _, _, _ = model(
+                            question,
+                            features,
+                            spatials,
+                            segment_ids,
+                            input_mask,
+                            image_mask,
+                            task_ids=task_tokens,
+                        )
+
+                        score_matrix[image_idx * BATCH_SIZE:(image_idx + 1) * BATCH_SIZE, caption_idx] = (vil_logit.view(-1).cpu().numpy())
+                        target_matrix[image_idx * BATCH_SIZE:(image_idx + 1) * BATCH_SIZE, caption_idx] = (target.view(-1).float().cpu().numpy())
+                elif task_cfg[task]["name"] == "ZeroShotCUBBatchMultiCls":
                     torch.cuda.empty_cache()
                     batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
                     features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (

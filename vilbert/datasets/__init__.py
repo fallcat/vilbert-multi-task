@@ -24,7 +24,7 @@ from .guesswhat_dataset import GuessWhatDataset
 from .visual7w_pointing_dataset import Visual7wPointingDataset
 from .guesswhat_pointing_dataset import GuessWhatPointingDataset
 from .flickr_grounding_dataset import FlickrGroundingDataset
-from .zero_shot_cls_dataset import ZeroShotClsDatasetVal, ZeroShotClsDatasetValBatch
+from .zero_shot_cls_dataset import ZeroShotClsDatasetVal, ZeroShotClsDatasetValBatch, ZeroShotClsDatasetValBatchMultiCls
 
 # from .flickr_retreival_dataset import FlickrRetreivalDatasetTrain, FlickrRetreivalDatasetVal
 __all__ = [
@@ -82,6 +82,7 @@ DatasetMapEval = {
     "VCR_QA-R": VCRDataset,
     "RetrievalCOCO": RetreivalDatasetVal,
     "RetrievalFlickr30k": RetreivalDatasetVal,
+    "RetrievalCUBMultiCls": ZeroShotClsDatasetValBatchMultiCls,
     "RetrievalCUB": ZeroShotClsDatasetVal,
     "refcoco": ReferExpressionDataset,
     "refcoco+": ReferExpressionDataset,
