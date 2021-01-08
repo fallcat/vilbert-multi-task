@@ -13,7 +13,7 @@ from .vqa_dataset import VQAClassificationDataset
 from .vqa_mc_dataset import VQAMultipleChoiceDataset
 from .nlvr2_dataset import NLVR2Dataset
 from .refer_expression_dataset import ReferExpressionDataset
-from .retreival_dataset import RetreivalDataset, RetreivalDatasetVal
+from .retreival_dataset import RetreivalDataset, RetreivalDatasetVal, RetreivalDatasetMultiCls
 from .vcr_dataset import VCRDataset
 from .visdial_dataset import VisDialDataset
 from .visual_entailment_dataset import VisualEntailmentDataset
@@ -59,6 +59,7 @@ DatasetMapTrain = {
     "RetrievalCOCO": RetreivalDataset,
     "RetrievalFlickr30k": RetreivalDataset,
     "RetrievalCUB": RetreivalDataset,
+    "RetreivalCUBMultiCls": RetreivalDatasetMultiCls,
     "refcoco": ReferExpressionDataset,
     "refcoco+": ReferExpressionDataset,
     "refcocog": ReferExpressionDataset,
