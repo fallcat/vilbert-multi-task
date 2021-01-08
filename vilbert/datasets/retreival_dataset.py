@@ -19,6 +19,9 @@ import jsonlines
 import sys
 import pdb
 
+import nltk
+nltk.download('punkt')
+
 
 def assert_eq(real, expected):
     assert real == expected, "%s (true) vs %s (expected)" % (real, expected)
@@ -143,15 +146,267 @@ class RetreivalDataset(Dataset):
         """
         for entry in self._entries:
 
-            print('entry["caption"]', entry["caption"])
             tokens = self._tokenizer.encode(entry["caption"])
             tokens = tokens[: self._max_seq_length - 2]
-            print("tokens", tokens)
             tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
-            print("tokens2", tokens)
-            print("_tokenizer cls token", self._tokenizer.cls_token)
-            print("_tokenizer cls token encoded", self._tokenizer.encode(self._tokenizer.cls_token))
+
+            segment_ids = [0] * len(tokens)
+            input_mask = [1] * len(tokens)
+
+            if len(tokens) < self._max_seq_length:
+                # Note here we pad in front of the sentence
+                padding = [self._padding_index] * (self._max_seq_length - len(tokens))
+                tokens = tokens + padding
+                input_mask += padding
+                segment_ids += padding
+
+            assert_eq(len(tokens), self._max_seq_length)
+            entry["token"] = tokens
+            entry["input_mask"] = input_mask
+            entry["segment_ids"] = segment_ids
+
+    def tensorize(self):
+
+        for entry in self._entries:
+            token = torch.from_numpy(np.array(entry["token"]))
+            entry["token"] = token
+
+            input_mask = torch.from_numpy(np.array(entry["input_mask"]))
+            entry["input_mask"] = input_mask
+
+            segment_ids = torch.from_numpy(np.array(entry["segment_ids"]))
+            entry["segment_ids"] = segment_ids
+
+    def __getitem__(self, index):
+        entry = self._entries[index]
+        image_id = entry["image_id"]
+
+        features, num_boxes, boxes, _ = self._image_features_reader[image_id]
+
+        mix_num_boxes = min(int(num_boxes), self._max_region_num)
+        mix_boxes_pad = np.zeros((self._max_region_num, 5))
+        mix_features_pad = np.zeros((self._max_region_num, 2048))
+
+        image_mask = [1] * (int(mix_num_boxes))
+        while len(image_mask) < self._max_region_num:
+            image_mask.append(0)
+
+        mix_boxes_pad[:mix_num_boxes] = boxes[:mix_num_boxes]
+        mix_features_pad[:mix_num_boxes] = features[:mix_num_boxes]
+
+        features1 = torch.tensor(mix_features_pad).float()
+        image_mask1 = torch.tensor(image_mask).long()
+        spatials1 = torch.tensor(mix_boxes_pad).float()
+
+        caption1 = entry["token"]
+        input_mask1 = entry["input_mask"]
+        segment_ids1 = entry["segment_ids"]
+        # negative samples.
+        # 1: correct one, 2: random caption wrong, 3: random image wrong. 4: hard image wrong.
+
+        while True:
+            # sample a random image:
+            img_id2 = random.choice(self.image_id_list)
+            if img_id2 != image_id:
+                break
+
+        entry2 = self._entries[random.choice(self.imgid2entry[img_id2])]
+
+        features2 = features1
+        image_mask2 = image_mask1
+        spatials2 = spatials1
+        caption2 = entry2["token"]
+        input_mask2 = entry2["input_mask"]
+        segment_ids2 = entry2["segment_ids"]
+
+        # random image wrong
+        while True:
+            # sample a random image:
+            img_id3 = random.choice(self.image_id_list)
+            if img_id3 != image_id:
+                break
+
+        features3, num_boxes3, boxes3, _ = self._image_features_reader[img_id3]
+        image_mask3 = [1] * (int(num_boxes3))
+
+        mix_num_boxes3 = min(int(num_boxes3), self._max_region_num)
+        mix_boxes_pad3 = np.zeros((self._max_region_num, 5))
+        mix_features_pad3 = np.zeros((self._max_region_num, 2048))
+
+        while len(image_mask3) < self._max_region_num:
+            image_mask3.append(0)
+
+        mix_boxes_pad[:mix_num_boxes3] = boxes3[:mix_num_boxes3]
+        mix_features_pad[:mix_num_boxes3] = features3[:mix_num_boxes3]
+
+        features3 = torch.tensor(mix_features_pad).float()
+        image_mask3 = torch.tensor(image_mask3).long()
+        spatials3 = torch.tensor(mix_boxes_pad).float()
+
+        caption3 = caption1
+        input_mask3 = input_mask1
+        segment_ids3 = segment_ids1
+
+        if self._split == "train":
+            # random hard caption.
+            #print("self.train_hard_pool", self.train_hard_pool.shape)
+            #print("self.train_imgId2pool", self.train_imgId2pool.keys())
+            #print("image_id", image_id)
+            #print("image_id in self.train_imgId2pool", image_id in self.train_imgId2pool)
+            #print("self.train_imgId2pool[image_id] in self.train_hard_pool", self.train_imgId2pool[image_id] in self.train_hard_pool)
+            rand_img_id_pool = self.train_hard_pool[self.train_imgId2pool[image_id]]
+            pool_img_idx = int(
+                rand_img_id_pool[np.random.randint(1, len(rand_img_id_pool))]
+            )
+            img_id4 = self.train_image_list[pool_img_idx]
+        else:
+            while True:
+                # sample a random image:
+                img_id4 = random.choice(self.image_id_list)
+                if img_id4 != image_id:
+                    break
+
+        entry4 = self._entries[random.choice(self.imgid2entry[img_id4])]
+
+        features4 = features1
+        image_mask4 = image_mask1
+        spatials4 = spatials1
+        caption4 = entry4["token"]
+        input_mask4 = entry4["input_mask"]
+        segment_ids4 = entry4["segment_ids"]
+
+        features = torch.stack([features1, features2, features3, features4], dim=0)
+        spatials = torch.stack([spatials1, spatials2, spatials3, spatials4], dim=0)
+        image_mask = torch.stack(
+            [image_mask1, image_mask2, image_mask3, image_mask4], dim=0
+        )
+        caption = torch.stack([caption1, caption2, caption3, caption4], dim=0)
+        input_mask = torch.stack(
+            [input_mask1, input_mask2, input_mask3, input_mask4], dim=0
+        )
+        segment_ids = torch.stack(
+            [segment_ids1, segment_ids2, segment_ids3, segment_ids4], dim=0
+        )
+        co_attention_mask = torch.zeros((4, self._max_region_num, self._max_seq_length))
+        target = 0
+
+        return (
+            features,
+            spatials,
+            image_mask,
+            caption,
+            target,
+            input_mask,
+            segment_ids,
+            co_attention_mask,
+            image_id,
+        )
+
+    def __len__(self):
+        return len(self._entries)
+
+class RetreivalDatasetMultiCls(Dataset):
+    def __init__(
+        self,
+        task: str,
+        dataroot: str,
+        annotations_jsonpath: str,
+        split: str,
+        image_features_reader: ImageFeaturesH5Reader,
+        gt_image_features_reader: ImageFeaturesH5Reader,
+        tokenizer: BertTokenizer,
+        bert_model,
+        clean_datasets,
+        padding_index: int = 0,
+        max_seq_length: int = 20,
+        max_region_num: int = 37,
+    ):
+        # All the keys in `self._entries` would be present in `self._image_features_reader`
+
+        self._entries, self.imgid2entry = _load_annotations(
+            split, annotations_jsonpath, task, dataroot, clean_datasets
+        )
+        self.image_id_list = [*self.imgid2entry]
+
+        self._image_features_reader = image_features_reader
+        self._tokenizer = tokenizer
+        self.num_labels = 1
+        self._split = split
+        self._padding_index = padding_index
+        self._max_region_num = max_region_num
+        self._max_seq_length = max_seq_length
+
+        clean_train = "_cleaned" if clean_datasets else ""
+
+        self.cls_token_code = self._tokenizer.encode(self._tokenizer.cls_token)
+
+        if self._split == "train":
+            image_info = cPickle.load(
+                open(
+                    os.path.join(dataroot, "hard_negative" + clean_train + ".pkl"), "rb"
+                )
+            )
+            for key, value in image_info.items():
+                setattr(self, key, value)
+            self.train_imgId2pool = {
+                imageId: i for i, imageId in enumerate(self.train_image_list)
+            }
+
+        if "roberta" in bert_model:
+            cache_path = os.path.join(
+                dataroot,
+                "cache",
+                task
+                + "_"
+                + split
+                + "_"
+                + "roberta"
+                + "_"
+                + str(max_seq_length)
+                + clean_train
+                + ".pkl",
+            )
+        else:
+            cache_path = os.path.join(
+                dataroot,
+                "cache",
+                task + "_" + split + "_" + str(max_seq_length) + clean_train + ".pkl",
+            )
+
+        if not os.path.exists(cache_path):
+            self.tokenize()
+            self.tensorize()
+            cPickle.dump(self._entries, open(cache_path, "wb"))
+        else:
+            print("loading entries from %s" % (cache_path))
+            self._entries = cPickle.load(open(cache_path, "rb"))
+
+    def tokenize(self):
+        """Tokenizes the captions.
+
+        This will add caption_tokens in each entry of the dataset.
+        -1 represents nil, and should be treated as padding_idx in embedding.
+        """
+        for entry in self._entries:
+
+            # print('entry["caption"]', entry["caption"])
+            tokens = self._tokenizer.encode(entry["caption"])
+            tokens = tokens[: self._max_seq_length - 2]
+            # print("tokens", tokens)
+
+            tokens_list = nltk.tokenize.sent_tokenize(tokens)
+            print("tokens_list", tokens_list, len(tokens_list))
+            tokens = []
+            for tk in tokens_list:
+                tokens.extend(self._tokenizer.add_special_tokens_single_sentence(tk))
+
+            cls_indices = [i for i, x in enumerate(tokens) if x == self.cls_token_code]
+            print("cls_indices", cls_indices)
             exit()
+            # print("tokens2", tokens)
+            # print("_tokenizer cls token", self._tokenizer.cls_token)
+            # print("_tokenizer cls token encoded", self._tokenizer.encode(self._tokenizer.cls_token))
+            # exit()
 
             segment_ids = [0] * len(tokens)
             input_mask = [1] * len(tokens)
