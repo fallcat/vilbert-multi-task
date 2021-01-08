@@ -59,7 +59,7 @@ DatasetMapTrain = {
     "RetrievalCOCO": RetreivalDataset,
     "RetrievalFlickr30k": RetreivalDataset,
     "RetrievalCUB": RetreivalDataset,
-    "RetreivalCUBMultiCls": RetreivalDatasetMultiCls,
+    "RetrievalCUBMultiCls": RetreivalDatasetMultiCls,
     "refcoco": ReferExpressionDataset,
     "refcoco+": ReferExpressionDataset,
     "refcocog": ReferExpressionDataset,
