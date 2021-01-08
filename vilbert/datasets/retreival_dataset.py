@@ -404,6 +404,7 @@ class RetreivalDatasetMultiCls(Dataset):
             # print("tokens", tokens)
 
             cls_indices = [i for i, x in enumerate(tokens) if x == self.cls_token_code]
+            print("self.cls_token_code", self.cls_token_code)
             print("cls_indices", cls_indices)
             exit()
             # print("tokens2", tokens)
