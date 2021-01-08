@@ -351,7 +351,7 @@ def main():
 
                         score_matrix[image_idx * BATCH_SIZE:(image_idx + 1) * BATCH_SIZE, caption_idx] = (vil_logit.view(-1).cpu().numpy())
                         target_matrix[image_idx * BATCH_SIZE:(image_idx + 1) * BATCH_SIZE, caption_idx] = (target.view(-1).float().cpu().numpy())
-                elif task_cfg[task]["name"] == "ZeroShotCUBBatchMultiCls":
+                elif task_cfg[task]["name"] == "RetrievalCUBMultiCls":
                     torch.cuda.empty_cache()
                     batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch)
                     features, spatials, image_mask, question, input_mask, segment_ids, target, caption_idx, image_idx = (
