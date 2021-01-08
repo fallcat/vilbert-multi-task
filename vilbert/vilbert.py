@@ -1409,6 +1409,8 @@ class BertModel(BertPreTrainedModel):
             print("mask", mask.shape)
             pooled_output_t = torch.cat((pooled_output_t[:,0:1], pooled_output_t[:,2:]), dim=1)
             print("pooled_output_t2", pooled_output_t.shape)
+            print("(pooled_output_t * mask).sum(dim=1)", (pooled_output_t * mask).sum(dim=1).shape)
+            print("mask.sum(dim=1)", mask.sum(dim=1).shape)
             pooled_output_t = (pooled_output_t * mask).sum(dim=1) / mask.sum(dim=1)
             print("pooled_output_t", pooled_output_t.shape)
             print("mask", mask.shape)
