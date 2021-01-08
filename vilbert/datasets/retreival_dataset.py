@@ -391,15 +391,16 @@ class RetreivalDatasetMultiCls(Dataset):
         for entry in self._entries:
 
             # print('entry["caption"]', entry["caption"])
-            tokens = self._tokenizer.encode(entry["caption"])
-            tokens = tokens[: self._max_seq_length - 2]
-            # print("tokens", tokens)
+            sents_list = nltk.tokenize.sent_tokenize(entry["caption"])
 
-            tokens_list = nltk.tokenize.sent_tokenize(tokens)
-            print("tokens_list", tokens_list, len(tokens_list))
-            tokens = []
-            for tk in tokens_list:
-                tokens.extend(self._tokenizer.add_special_tokens_single_sentence(tk))
+            tokens_list = []
+            for sent in sents_list:
+                tokens = self._tokenizer.encode(sent)
+                tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
+                tokens_list.extend(tokens)
+
+            tokens = tokens_list[: self._max_seq_length]
+            # print("tokens", tokens)
 
             cls_indices = [i for i, x in enumerate(tokens) if x == self.cls_token_code]
             print("cls_indices", cls_indices)
