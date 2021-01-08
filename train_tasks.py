@@ -379,7 +379,7 @@ def main():
             default_gpu=default_gpu
         )
         if args.multi_cls:
-            model
+            model.set_multi_cls()
 
     task_losses = LoadLosses(args, task_cfg, args.tasks.split("-"))
 
