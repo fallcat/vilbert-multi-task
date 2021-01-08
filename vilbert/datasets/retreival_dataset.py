@@ -20,6 +20,7 @@ import sys
 import pdb
 
 import nltk
+nltk.data.path.append('/scratch/weiqiuy/nltk_data2')
 nltk.download('punkt')
 
 
