@@ -339,7 +339,7 @@ class RetreivalDatasetMultiCls(Dataset):
 
         clean_train = "_cleaned" if clean_datasets else ""
 
-        self.cls_token_code = self._tokenizer.encode(self._tokenizer.cls_token)
+        self.cls_token_code = self._tokenizer.encode(self._tokenizer.cls_token)[0]
 
         if self._split == "train":
             image_info = cPickle.load(
