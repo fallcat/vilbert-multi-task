@@ -398,6 +398,7 @@ class RetreivalDatasetMultiCls(Dataset):
                 tokens = self._tokenizer.encode(sent)
                 tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
                 tokens_list.extend(tokens)
+                print("tokens_list", tokens_list)
 
             tokens = tokens_list[: self._max_seq_length]
             # print("tokens", tokens)
