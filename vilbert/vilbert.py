@@ -1404,6 +1404,8 @@ class BertModel(BertPreTrainedModel):
         pooled_output_t = self.t_pooler(sequence_output_t, cls_indices=cls_indices)
         if cls_token_code is not None:
             mask = input_txt == cls_token_code
+            print("pooled_output_t", pooled_output_t.shape)
+            print("mask", mask.shape)
             pooled_output_t = (pooled_output_t * mask).sum(dim=1) / mask.sum(dim=1)
             print("pooled_output_t", pooled_output_t.shape)
             print("mask", mask.shape)
