@@ -1121,6 +1121,7 @@ class BertTextPooler(nn.Module):
             pooled_output = self.dense(first_token_tensor)
             pooled_output = self.activation(pooled_output)
         else:
+            print("hidden_states", hidden_states.shape)
             cls_token_tensors = hidden_states[:, cls_indices]
             print("cls_token_tensors", cls_token_tensors.shape)
             exit()
@@ -1340,7 +1341,7 @@ class BertModel(BertPreTrainedModel):
         if cls_token_code is None:
             cls_indices = None
         else:
-            cls_indices = [i for i, x in enumerate(input_txt) if x == cls_token_code]
+            cls_indices = [i for i, x in enumerate(input_txt.view(-1)) if x == cls_token_code]
 
         if self.task_specific_tokens:
             # extend the mask
