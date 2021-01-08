@@ -1121,11 +1121,7 @@ class BertTextPooler(nn.Module):
             pooled_output = self.dense(first_token_tensor)
             pooled_output = self.activation(pooled_output)
         else:
-            print("hidden_states", hidden_states.shape)
-            cls_token_tensors = hidden_states[:, cls_indices]
-            print("cls_token_tensors", cls_token_tensors.shape)
-            exit()
-            pooled_output = self.dense(cls_token_tensors)
+            pooled_output = self.dense(hidden_states)
             pooled_output = self.activation(pooled_output)
         return pooled_output
 
@@ -1328,7 +1324,7 @@ class BertModel(BertPreTrainedModel):
         output_all_attention_masks=False,
         cls_token_code=None
     ):
-        print("input_txt", input_txt)
+        print("input_txt", input_txt.shape)
         print("cls_token_code", cls_token_code)
         if attention_mask is None:
             attention_mask = torch.ones_like(input_txt)
@@ -1406,6 +1402,12 @@ class BertModel(BertPreTrainedModel):
         sequence_output_v = encoded_layers_v[-1]
 
         pooled_output_t = self.t_pooler(sequence_output_t, cls_indices=cls_indices)
+        if cls_token_code is not None:
+            mask = input_txt == cls_token_code
+            pooled_output_t = (pooled_output_t * mask).sum(dim=1) / mask.sum(dim=1)
+            print("pooled_output_t", pooled_output_t.shape)
+            print("mask", mask.shape)
+            exit()
         pooled_output_v = self.v_pooler(sequence_output_v)
 
         if not output_all_encoded_layers:
