@@ -217,6 +217,11 @@ def main():
         action="store_true",
         help="whether to use task specific tokens for the multi-task learning.",
     )
+    parser.add_argument(
+        "--multi_cls",
+        action="store_true",
+        help="whether to use multiple cls tokens.",
+    )
 
     args = parser.parse_args()
     with open("vilbert_tasks.yml", "r") as f:
@@ -371,8 +376,10 @@ def main():
             args.from_pretrained,
             config=config,
             num_labels=num_labels,
-            default_gpu=default_gpu,
+            default_gpu=default_gpu
         )
+        if args.multi_cls:
+            model
 
     task_losses = LoadLosses(args, task_cfg, args.tasks.split("-"))
 

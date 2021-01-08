@@ -398,19 +398,12 @@ class RetreivalDatasetMultiCls(Dataset):
                 tokens = self._tokenizer.encode(sent)
                 tokens = self._tokenizer.add_special_tokens_single_sentence(tokens)
                 tokens_list.extend(tokens)
-                print("tokens_list", tokens_list)
+                # print("tokens_list", tokens_list)
 
             tokens = tokens_list[: self._max_seq_length]
             # print("tokens", tokens)
 
             cls_indices = [i for i, x in enumerate(tokens) if x == self.cls_token_code]
-            print("self.cls_token_code", self.cls_token_code)
-            print("cls_indices", cls_indices)
-            exit()
-            # print("tokens2", tokens)
-            # print("_tokenizer cls token", self._tokenizer.cls_token)
-            # print("_tokenizer cls token encoded", self._tokenizer.encode(self._tokenizer.cls_token))
-            # exit()
 
             segment_ids = [0] * len(tokens)
             input_mask = [1] * len(tokens)
@@ -426,6 +419,7 @@ class RetreivalDatasetMultiCls(Dataset):
             entry["token"] = tokens
             entry["input_mask"] = input_mask
             entry["segment_ids"] = segment_ids
+            entry["cls_indices"] = cls_indices
 
     def tensorize(self):
 
@@ -463,6 +457,7 @@ class RetreivalDatasetMultiCls(Dataset):
         caption1 = entry["token"]
         input_mask1 = entry["input_mask"]
         segment_ids1 = entry["segment_ids"]
+        cls_indices1 = entry["cls_indices"]
         # negative samples.
         # 1: correct one, 2: random caption wrong, 3: random image wrong. 4: hard image wrong.
 
@@ -480,6 +475,7 @@ class RetreivalDatasetMultiCls(Dataset):
         caption2 = entry2["token"]
         input_mask2 = entry2["input_mask"]
         segment_ids2 = entry2["segment_ids"]
+        cls_indices2 = entry2["cls_indices"]
 
         # random image wrong
         while True:
@@ -508,6 +504,7 @@ class RetreivalDatasetMultiCls(Dataset):
         caption3 = caption1
         input_mask3 = input_mask1
         segment_ids3 = segment_ids1
+        cls_indices3 = cls_indices1
 
         if self._split == "train":
             # random hard caption.
@@ -536,6 +533,7 @@ class RetreivalDatasetMultiCls(Dataset):
         caption4 = entry4["token"]
         input_mask4 = entry4["input_mask"]
         segment_ids4 = entry4["segment_ids"]
+        cls_indices4 = entry4["cls_indices"]
 
         features = torch.stack([features1, features2, features3, features4], dim=0)
         spatials = torch.stack([spatials1, spatials2, spatials3, spatials4], dim=0)

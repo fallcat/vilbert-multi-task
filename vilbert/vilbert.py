@@ -1113,12 +1113,19 @@ class BertTextPooler(nn.Module):
         self.dense = nn.Linear(config.hidden_size, config.bi_hidden_size)
         self.activation = nn.ReLU()
 
-    def forward(self, hidden_states):
+    def forward(self, hidden_states, cls_indices=None):
         # We "pool" the model by simply taking the hidden state corresponding
         # to the first token.
-        first_token_tensor = hidden_states[:, 0]
-        pooled_output = self.dense(first_token_tensor)
-        pooled_output = self.activation(pooled_output)
+        if cls_indices is None:
+            first_token_tensor = hidden_states[:, 0]
+            pooled_output = self.dense(first_token_tensor)
+            pooled_output = self.activation(pooled_output)
+        else:
+            cls_token_tensors = hidden_states[:, cls_indices]
+            print("cls_token_tensors", cls_token_tensors.shape)
+            exit()
+            pooled_output = self.dense(cls_token_tensors)
+            pooled_output = self.activation(pooled_output)
         return pooled_output
 
 
@@ -1318,7 +1325,9 @@ class BertModel(BertPreTrainedModel):
         task_ids=None,
         output_all_encoded_layers=False,
         output_all_attention_masks=False,
+        cls_token_code=None
     ):
+        print("input_txt", input_txt)
         if attention_mask is None:
             attention_mask = torch.ones_like(input_txt)
         if token_type_ids is None:
@@ -1327,6 +1336,10 @@ class BertModel(BertPreTrainedModel):
             image_attention_mask = torch.ones(
                 input_imgs.size(0), input_imgs.size(1)
             ).type_as(input_txt)
+        if cls_token_code is None:
+            cls_indices = None
+        else:
+            cls_indices = [i for i, x in enumerate(input_txt) if x == cls_token_code]
 
         if self.task_specific_tokens:
             # extend the mask
@@ -1390,7 +1403,7 @@ class BertModel(BertPreTrainedModel):
         sequence_output_t = encoded_layers_t[-1]
         sequence_output_v = encoded_layers_v[-1]
 
-        pooled_output_t = self.t_pooler(sequence_output_t)
+        pooled_output_t = self.t_pooler(sequence_output_t, cls_indices=cls_indices)
         pooled_output_v = self.v_pooler(sequence_output_v)
 
         if not output_all_encoded_layers:
@@ -1625,6 +1638,8 @@ class VILBertForVLTasks(BertPreTrainedModel):
         self.fusion_method = config.fusion_method
         self.apply(self.init_weights)
 
+        self.cls_token_code = None
+
         self.tie_weights()
 
     def tie_weights(self):
@@ -1634,6 +1649,9 @@ class VILBertForVLTasks(BertPreTrainedModel):
         self._tie_or_clone_weights(
             self.cls.predictions.decoder, self.bert.embeddings.word_embeddings
         )
+
+    def set_multi_cls(self):
+        self.cls_token_code = 101
 
     def forward(
         self,
@@ -1660,6 +1678,7 @@ class VILBertForVLTasks(BertPreTrainedModel):
             task_ids,
             output_all_encoded_layers=output_all_encoded_layers,
             output_all_attention_masks=output_all_attention_masks,
+            cls_token_code=self.cls_token_code
         )
 
         vil_prediction = 0
