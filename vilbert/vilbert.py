@@ -1328,6 +1328,7 @@ class BertModel(BertPreTrainedModel):
         cls_token_code=None
     ):
         print("input_txt", input_txt)
+        print("cls_token_code", cls_token_code)
         if attention_mask is None:
             attention_mask = torch.ones_like(input_txt)
         if token_type_ids is None:
