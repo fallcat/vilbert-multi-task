@@ -1404,7 +1404,7 @@ class BertModel(BertPreTrainedModel):
         print("sequence_output_t", sequence_output_t.shape)
         pooled_output_t = self.t_pooler(sequence_output_t, cls_indices=cls_indices)
         if cls_token_code is not None:
-            mask = input_txt == cls_token_code
+            mask = (input_txt == cls_token_code).unsqueeze(-1)
             print("pooled_output_t", pooled_output_t.shape)
             print("mask", mask.shape)
             pooled_output_t = torch.cat((pooled_output_t[:,0:1], pooled_output_t[:,2:]), dim=1)
