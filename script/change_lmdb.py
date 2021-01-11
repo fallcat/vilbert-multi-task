@@ -10,7 +10,7 @@ import pickle
 
 import lmdb
 import numpy as np
-import tqdm
+from tqdm import tqdm
 from itertools import product
 
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     with env1.begin(write=False) as txn1:
         with env2.begin(write=True) as txn2:
             image_ids = pickle.loads(txn1.get("keys".encode()))
-            for img_id in image_ids:
+            for img_id in tqdm(image_ids):
                 id_list.append(img_id)
                 item = pickle.loads(txn1.get(img_id))
                 image_id = item["image_id"]
