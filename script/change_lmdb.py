@@ -11,6 +11,8 @@ import pickle
 import lmdb
 import numpy as np
 import tqdm
+from itertools import product
+
 
 MAP_SIZE = 1099511627776
 
@@ -44,6 +46,13 @@ if __name__ == "__main__":
                 features = item["features"].reshape(-1, 2048)
                 num_boxes = int(item["num_boxes"])
                 boxes = item["boxes"].reshape(-1, 4)
+                # x1, y1, width, height
+                width = int(image_w / 10)
+                height = int(image_h / 10)
+                xs = range(0, image_w, width)
+                ys = range(0, image_h, height)
+                product_xy = list(product(xs, ys))
+                print("product_xy", product_xy)
                 txn2.put(img_id, pickle.dumps(item))
                 print("boxes", boxes.shape)
                 print("image_h", image_h)
