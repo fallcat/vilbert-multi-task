@@ -45,7 +45,9 @@ if __name__ == "__main__":
                 num_boxes = int(item["num_boxes"])
                 boxes = item["boxes"].reshape(-1, 4)
                 txn2.put(img_id, pickle.dumps(item))
-                print("boxes", boxes)
+                print("boxes", boxes.shape)
+                print("image_h", image_h)
+                print("image_w", image_w)
                 exit()
             # for infile in tqdm.tqdm(infiles):
             #     reader = np.load(infile, allow_pickle=True)
