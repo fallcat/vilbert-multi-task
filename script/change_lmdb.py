@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 image_h = int(item["image_h"])
                 image_w = int(item["image_w"])
                 features = item["features"].reshape(-1, 2048)
-                print("features.shape")
+                print("features.shape", features.shape)
                 exit()
                 num_boxes = int(item["num_boxes"])
                 boxes = item["boxes"].reshape(-1, 4)
