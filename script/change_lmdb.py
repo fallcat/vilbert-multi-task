@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 height = int(image_h / 10)
                 xs = range(0, image_w, width)
                 ys = range(0, image_h, height)
-                product_xy = list(product(xs, ys))
+                product_xy = np.array([[item[0], item[1], width, height] for item in product_xy])
                 print("product_xy", product_xy)
                 txn2.put(img_id, pickle.dumps(item))
                 print("boxes", boxes.shape)
