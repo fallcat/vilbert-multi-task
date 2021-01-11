@@ -28,7 +28,6 @@ def get_parser():
 
 if __name__ == "__main__":
     args = get_parser().parse_args()
-    infiles = glob.glob(os.path.join(args.features_dir, "*"))
     id_list = []
     env1 = lmdb.open(args.lmdb_file1, map_size=MAP_SIZE)
     env2 = lmdb.open(args.lmdb_file2, map_size=MAP_SIZE)
