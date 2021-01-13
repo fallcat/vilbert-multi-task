@@ -1237,8 +1237,8 @@ class BertPreTrainingHeads(nn.Module):
         self, sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
     ):
 
-        print("pooled_output_t", pooled_output_t.shape)
-        print("pooled_output_v", pooled_output_v.shape)
+        # print("pooled_output_t", pooled_output_t.shape)
+        # print("pooled_output_v", pooled_output_v.shape)
         if self.fusion_method == "sum":
             pooled_output = self.dropout(pooled_output_t + pooled_output_v)
         elif self.fusion_method == "mul":
@@ -1256,12 +1256,12 @@ class BertPreTrainingHeads(nn.Module):
 
         prediction_scores_t = self.predictions(sequence_output_t)
         if self.fusion_method == "dot":
-            print("pooled_output", pooled_output.shape)
-            print("torch.stack((pooled_output, -pooled_output), dim=-1)", torch.cat((pooled_output, -pooled_output), dim=-1).shape)
+            # print("pooled_output", pooled_output.shape)
+            # print("torch.stack((pooled_output, -pooled_output), dim=-1)", torch.cat((pooled_output, -pooled_output), dim=-1).shape)
             seq_relationship_score = torch.cat((pooled_output, -pooled_output), dim=-1)
         else:
             seq_relationship_score = self.bi_seq_relationship(pooled_output)
-        print("seq_relationship_score", seq_relationship_score.shape)
+        # print("seq_relationship_score", seq_relationship_score.shape)
         prediction_scores_v = self.imagePredictions(sequence_output_v)
 
         return prediction_scores_t, prediction_scores_v, seq_relationship_score
@@ -1731,8 +1731,8 @@ class VILBertForVLTasks(BertPreTrainedModel):
         else:
             assert False
 
-        print("self.fusion_method", self.fusion_method)
-        print("pooled_output", pooled_output.shape)
+        # print("self.fusion_method", self.fusion_method)
+        # print("pooled_output", pooled_output.shape)
         if self.fusion_method in ["sum", "mul", "cat"]:  # "attn",
             vil_logit = self.vil_logit(pooled_output)
 
@@ -1760,7 +1760,7 @@ class VILBertForVLTasks(BertPreTrainedModel):
             vision_logit = None
             linguisic_logit = None
 
-        print("vil_logit", vil_logit.shape)
+        # print("vil_logit", vil_logit.shape)
 
         return (
             vil_prediction,
