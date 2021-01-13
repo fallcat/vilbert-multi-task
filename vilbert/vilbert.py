@@ -1246,6 +1246,7 @@ class BertPreTrainingHeads(nn.Module):
             pooled_output = self.dropout(pooled_output_t * pooled_output_v)
         elif self.fusion_method == "dot":
             pooled_output = self.dropout(torch.bmm(pooled_output_t.unsqueeze(-2), pooled_output_v.unsqueeze(-1)))
+            pooled_output = pooled_output.squeeze(-1)
         elif self.fusion_method == "cat":
             pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
         elif self.fusion_method == "attn":
