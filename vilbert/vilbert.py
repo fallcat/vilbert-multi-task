@@ -1227,9 +1227,8 @@ class BertPreTrainingHeads(nn.Module):
         self.imagePredictions = BertImagePredictionHead(config)
         self.fusion_method = config.fusion_method
         if self.fusion_method == "cat":
-            self.bi_seq_relationship = nn.Linear(config.bi_hidden_size * 2, 2)
-        else:
-            self.bi_seq_relationship = nn.Linear(config.bi_hidden_size, 2)
+            self.shrink_cat = nn.Linear(config.bi_hidden_size * 2, config.bi_hidden_size)
+        self.bi_seq_relationship = nn.Linear(config.bi_hidden_size, 2)
         self.dropout = nn.Dropout(0.1)
         if self.fusion_method == "attn":
             self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout=0.1)
@@ -1249,6 +1248,7 @@ class BertPreTrainingHeads(nn.Module):
             pooled_output = pooled_output.squeeze(-1)
         elif self.fusion_method == "cat":
             pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
+            pooled_output = self.shrink_cat(pooled_output)
         elif self.fusion_method == "attn":
             pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
         else:
@@ -1649,13 +1649,12 @@ class VILBertForVLTasks(BertPreTrainedModel):
         self.vil_binary_prediction = SimpleClassifier(
             config.bi_hidden_size * 2, config.bi_hidden_size * 2, 2, 0.5
         )
-        if config.fusion_method == "cat":
-            self.vil_logit = nn.Linear(config.bi_hidden_size * 2, 1)
+        if self.fusion_method == "cat":
+            self.shrink_cat = nn.Linear(config.bi_hidden_size * 2, config.bi_hidden_size)
         elif config.fusion_method == "attn":
             self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout_prob)
-            self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
         else:
-            self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
+        self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
         self.vil_tri_prediction = nn.Linear(
             config.bi_hidden_size, 3
         )  # for Visual Entailiment tasks
@@ -1727,6 +1726,7 @@ class VILBertForVLTasks(BertPreTrainedModel):
             pooled_output = self.dropout(torch.bmm(pooled_output_t.unsqueeze(-2), pooled_output_v.unsqueeze(-1)))
         elif self.fusion_method == "cat":
             pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
+            pooled_output = self.shrink_cat(pooled_output)
         elif self.fusion_method == "attn":
             pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
         else:
@@ -1734,7 +1734,7 @@ class VILBertForVLTasks(BertPreTrainedModel):
 
         print("self.fusion_method", self.fusion_method)
         print("pooled_output", pooled_output.shape)
-        if self.fusion_method in ["sum", "mul", "attn"]:
+        if self.fusion_method in ["sum", "mul", "attn", "cat"]:
             vil_logit = self.vil_logit(pooled_output)
 
             vil_prediction = self.vil_prediction(pooled_output)
@@ -1750,10 +1750,10 @@ class VILBertForVLTasks(BertPreTrainedModel):
             ).unsqueeze(2).to(dtype=next(self.parameters()).dtype)
             linguisic_logit = self.linguisic_logit(self.dropout(sequence_output_t))
         else:
-            if self.fusion_method == "cat":
-                vil_logit = self.vil_logit(pooled_output)
-            elif self.fusion_method == "dot":
+            if self.fusion_method == "dot":
                 vil_logit = pooled_output
+            else:
+                assert False
             vil_prediction = None
             vil_prediction_gqa = None
             vil_binary_prediction = None
