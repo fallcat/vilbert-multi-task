@@ -1258,6 +1258,7 @@ class BertPreTrainingHeads(nn.Module):
             seq_relationship_score = self.bi_seq_relationship(torch.stack((pooled_output, -pooled_output), dim=-1))
         else:
             seq_relationship_score = self.bi_seq_relationship(pooled_output)
+        print("seq_relationship_score", seq_relationship_score.shape)
         prediction_scores_v = self.imagePredictions(sequence_output_v)
 
         return prediction_scores_t, prediction_scores_v, seq_relationship_score
