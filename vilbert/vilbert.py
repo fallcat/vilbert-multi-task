@@ -1653,7 +1653,6 @@ class VILBertForVLTasks(BertPreTrainedModel):
             self.shrink_cat = nn.Linear(config.bi_hidden_size * 2, config.bi_hidden_size)
         elif config.fusion_method == "attn":
             self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout_prob)
-        else:
         self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
         self.vil_tri_prediction = nn.Linear(
             config.bi_hidden_size, 3
