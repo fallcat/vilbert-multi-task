@@ -301,6 +301,7 @@ def main():
             os.makedirs(savePath)
 
     config = BertConfig.from_json_file(args.config_file)
+    print("config", config)
     if default_gpu:
         # save all the hidden parameters.
         with open(os.path.join(savePath, "command.txt"), "w") as f:
