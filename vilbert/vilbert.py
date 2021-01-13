@@ -1230,8 +1230,8 @@ class BertPreTrainingHeads(nn.Module):
             self.shrink_cat = nn.Linear(config.bi_hidden_size * 2, config.bi_hidden_size)
         self.bi_seq_relationship = nn.Linear(config.bi_hidden_size, 2)
         self.dropout = nn.Dropout(0.1)
-        if self.fusion_method == "attn":
-            self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout=0.1)
+        # if self.fusion_method == "attn":
+        #     self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout=0.1)
 
     def forward(
         self, sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
@@ -1249,8 +1249,8 @@ class BertPreTrainingHeads(nn.Module):
         elif self.fusion_method == "cat":
             pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
             pooled_output = self.shrink_cat(pooled_output)
-        elif self.fusion_method == "attn":
-            pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
+        # elif self.fusion_method == "attn":
+        #     pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
         else:
             assert False
 
@@ -1652,8 +1652,8 @@ class VILBertForVLTasks(BertPreTrainedModel):
         self.fusion_method = config.fusion_method
         if config.fusion_method == "cat":
             self.shrink_cat = nn.Linear(config.bi_hidden_size * 2, config.bi_hidden_size)
-        elif config.fusion_method == "attn":
-            self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout_prob)
+        # elif config.fusion_method == "attn":
+        #     self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout_prob)
         self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
         self.vil_tri_prediction = nn.Linear(
             config.bi_hidden_size, 3
@@ -1726,14 +1726,14 @@ class VILBertForVLTasks(BertPreTrainedModel):
         elif self.fusion_method == "cat":
             pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
             pooled_output = self.shrink_cat(pooled_output)
-        elif self.fusion_method == "attn":
-            pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
+        # elif self.fusion_method == "attn":
+        #     pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
         else:
             assert False
 
         print("self.fusion_method", self.fusion_method)
         print("pooled_output", pooled_output.shape)
-        if self.fusion_method in ["sum", "mul", "attn", "cat"]:
+        if self.fusion_method in ["sum", "mul", "cat"]:  # "attn",
             vil_logit = self.vil_logit(pooled_output)
 
             vil_prediction = self.vil_prediction(pooled_output)
