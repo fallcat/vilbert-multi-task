@@ -1238,6 +1238,8 @@ class BertPreTrainingHeads(nn.Module):
         self, sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
     ):
 
+        print("pooled_output_t", pooled_output_t.shape)
+        print("pooled_output_v", pooled_output_v.shape)
         if self.fusion_method == "sum":
             pooled_output = self.dropout(pooled_output_t + pooled_output_v)
         elif self.fusion_method == "mul":
@@ -1254,8 +1256,8 @@ class BertPreTrainingHeads(nn.Module):
         prediction_scores_t = self.predictions(sequence_output_t)
         if self.fusion_method == "dot":
             print("pooled_output", pooled_output.shape)
-            print("torch.stack((pooled_output, -pooled_output), dim=-1)", torch.stack((pooled_output, -pooled_output), dim=-1).shape)
-            seq_relationship_score = self.bi_seq_relationship(torch.stack((pooled_output, -pooled_output), dim=-1))
+            print("torch.stack((pooled_output, -pooled_output), dim=-1)", torch.cat((pooled_output, -pooled_output), dim=-1).shape)
+            seq_relationship_score = torch.cat((pooled_output, -pooled_output), dim=-1)
         else:
             seq_relationship_score = self.bi_seq_relationship(pooled_output)
         print("seq_relationship_score", seq_relationship_score.shape)
