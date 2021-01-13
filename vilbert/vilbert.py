@@ -1629,7 +1629,13 @@ class VILBertForVLTasks(BertPreTrainedModel):
         self.vil_binary_prediction = SimpleClassifier(
             config.bi_hidden_size * 2, config.bi_hidden_size * 2, 2, 0.5
         )
-        self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
+        if config.fusion_method == "cat":
+            self.vil_logit = nn.Linear(config.bi_hidden_size * 2, 1)
+        elif config.fusion_method == "attn":
+            self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout_prob)
+            self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
+        else:
+            self.vil_logit = nn.Linear(config.bi_hidden_size, 1)
         self.vil_tri_prediction = nn.Linear(
             config.bi_hidden_size, 3
         )  # for Visual Entailiment tasks
@@ -1697,21 +1703,41 @@ class VILBertForVLTasks(BertPreTrainedModel):
             pooled_output = self.dropout(pooled_output_t + pooled_output_v)
         elif self.fusion_method == "mul":
             pooled_output = self.dropout(pooled_output_t * pooled_output_v)
+        elif self.fusion_method == "dot":
+            pooled_output = self.dropout(torch.bmm(pooled_output_t.unsqueeze(-2), pooled_output_v.unsqueeze(-1)))
+        elif self.fusion_method == "cat":
+            pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
+        elif self.fusion_method == "attn":
+            pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
         else:
             assert False
 
-        vil_prediction = self.vil_prediction(pooled_output)
-        vil_prediction_gqa = self.vil_prediction_gqa(pooled_output)
-        if pooled_output.size(0) % 2 == 0:
-            vil_binary_prediction = self.vil_binary_prediction(
-                pooled_output.view(-1, pooled_output.size(1) * 2)
-            )
-        vil_logit = self.vil_logit(pooled_output)
-        vil_tri_prediction = self.vil_tri_prediction(pooled_output)
-        vision_logit = self.vision_logit(self.dropout(sequence_output_v)) + (
-            (1.0 - image_attention_mask) * -10000.0
-        ).unsqueeze(2).to(dtype=next(self.parameters()).dtype)
-        linguisic_logit = self.linguisic_logit(self.dropout(sequence_output_t))
+        if self.fusion_method in ["sum", "mul", "attn"]:
+            vil_logit = self.vil_logit(pooled_output)
+
+            vil_prediction = self.vil_prediction(pooled_output)
+            vil_prediction_gqa = self.vil_prediction_gqa(pooled_output)
+            if pooled_output.size(0) % 2 == 0:
+                vil_binary_prediction = self.vil_binary_prediction(
+                    pooled_output.view(-1, pooled_output.size(1) * 2)
+                )
+
+            vil_tri_prediction = self.vil_tri_prediction(pooled_output)
+            vision_logit = self.vision_logit(self.dropout(sequence_output_v)) + (
+                (1.0 - image_attention_mask) * -10000.0
+            ).unsqueeze(2).to(dtype=next(self.parameters()).dtype)
+            linguisic_logit = self.linguisic_logit(self.dropout(sequence_output_t))
+        else:
+            if self.fusion_method == "cat":
+                vil_logit = self.vil_logit(pooled_output)
+            elif self.fusion_method == "dot":
+                vil_logit = pooled_output
+            vil_prediction = None
+            vil_prediction_gqa = None
+            vil_binary_prediction = None
+            vil_tri_prediction = None
+            vision_logit = None
+            linguisic_logit = None
 
         return (
             vil_prediction,
