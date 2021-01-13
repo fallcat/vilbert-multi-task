@@ -1224,10 +1224,15 @@ class BertPreTrainingHeads(nn.Module):
     def __init__(self, config, bert_model_embedding_weights):
         super(BertPreTrainingHeads, self).__init__()
         self.predictions = BertLMPredictionHead(config, bert_model_embedding_weights)
-        self.bi_seq_relationship = nn.Linear(config.bi_hidden_size, 2)
         self.imagePredictions = BertImagePredictionHead(config)
         self.fusion_method = config.fusion_method
+        if self.fusion_method == "cat":
+            self.bi_seq_relationship = nn.Linear(config.bi_hidden_size * 2, 2)
+        else:
+            self.bi_seq_relationship = nn.Linear(config.bi_hidden_size, 2)
         self.dropout = nn.Dropout(0.1)
+        if self.fusion_method == "attn":
+            self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout=0.1)
 
     def forward(
         self, sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
@@ -1237,11 +1242,20 @@ class BertPreTrainingHeads(nn.Module):
             pooled_output = self.dropout(pooled_output_t + pooled_output_v)
         elif self.fusion_method == "mul":
             pooled_output = self.dropout(pooled_output_t * pooled_output_v)
+        elif self.fusion_method == "dot":
+            pooled_output = self.dropout(torch.bmm(pooled_output_t.unsqueeze(-2), pooled_output_v.unsqueeze(-1)))
+        elif self.fusion_method == "cat":
+            pooled_output = self.dropout(torch.cat((pooled_output_t, pooled_output_v), dim=-1))
+        elif self.fusion_method == "attn":
+            pooled_output, attn_output_weights = self.attn(pooled_output_t, pooled_output_v, pooled_output_v)
         else:
             assert False
 
         prediction_scores_t = self.predictions(sequence_output_t)
-        seq_relationship_score = self.bi_seq_relationship(pooled_output)
+        if self.fusion_method == "dot":
+            seq_relationship_score = self.bi_seq_relationship(torch.stack((pooled_output, -pooled_output), dim=-1))
+        else:
+            seq_relationship_score = self.bi_seq_relationship(pooled_output)
         prediction_scores_v = self.imagePredictions(sequence_output_v)
 
         return prediction_scores_t, prediction_scores_v, seq_relationship_score
