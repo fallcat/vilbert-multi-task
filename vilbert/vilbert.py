@@ -1253,6 +1253,8 @@ class BertPreTrainingHeads(nn.Module):
 
         prediction_scores_t = self.predictions(sequence_output_t)
         if self.fusion_method == "dot":
+            print("pooled_output", pooled_output.shape)
+            print("torch.stack((pooled_output, -pooled_output), dim=-1)", torch.stack((pooled_output, -pooled_output), dim=-1).shape)
             seq_relationship_score = self.bi_seq_relationship(torch.stack((pooled_output, -pooled_output), dim=-1))
         else:
             seq_relationship_score = self.bi_seq_relationship(pooled_output)
