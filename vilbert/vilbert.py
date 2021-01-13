@@ -1712,6 +1712,8 @@ class VILBertForVLTasks(BertPreTrainedModel):
         else:
             assert False
 
+        print("self.fusion_method", self.fusion_method)
+        print("pooled_output", pooled_output.shape)
         if self.fusion_method in ["sum", "mul", "attn"]:
             vil_logit = self.vil_logit(pooled_output)
 
@@ -1738,6 +1740,8 @@ class VILBertForVLTasks(BertPreTrainedModel):
             vil_tri_prediction = None
             vision_logit = None
             linguisic_logit = None
+
+        print("vil_logit", vil_logit.shape)
 
         return (
             vil_prediction,
