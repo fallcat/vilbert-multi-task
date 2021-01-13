@@ -187,7 +187,8 @@ class FeatureExtractor:
 
         with torch.no_grad():
             output = self.detection_model(current_img_list)
-        print("output", output)
+        print("output[0]", output[0].keys())
+        print("output[1]", output[1].keys())
         feat_list = self._process_feature_extraction(
             output,
             im_scales,
