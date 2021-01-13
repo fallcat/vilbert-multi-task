@@ -1649,7 +1649,8 @@ class VILBertForVLTasks(BertPreTrainedModel):
         self.vil_binary_prediction = SimpleClassifier(
             config.bi_hidden_size * 2, config.bi_hidden_size * 2, 2, 0.5
         )
-        if self.fusion_method == "cat":
+        self.fusion_method = config.fusion_method
+        if config.fusion_method == "cat":
             self.shrink_cat = nn.Linear(config.bi_hidden_size * 2, config.bi_hidden_size)
         elif config.fusion_method == "attn":
             self.attn = nn.MultiheadAttention(config.bi_hidden_size, 4, dropout_prob)
@@ -1659,7 +1660,6 @@ class VILBertForVLTasks(BertPreTrainedModel):
         )  # for Visual Entailiment tasks
         self.vision_logit = nn.Linear(config.v_hidden_size, 1)
         self.linguisic_logit = nn.Linear(config.hidden_size, 1)
-        self.fusion_method = config.fusion_method
         self.apply(self.init_weights)
 
         self.cls_token_code = None
