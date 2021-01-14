@@ -189,7 +189,6 @@ class FeatureExtractor:
         return feat_list, info_list
 
     def get_detectron_features(self, image_paths):
-        print("get_detectron_features")
         img_tensor, im_scales, im_infos = [], [], []
 
         for image_path in image_paths:
@@ -208,8 +207,6 @@ class FeatureExtractor:
         )
 
         with torch.no_grad():
-            print("using detection_model")
-            print("proposals here", len(proposals))
             output = self.detection_model(current_img_list, proposals=proposals)
 
         feat_list = self._process_feature_extraction(
@@ -219,7 +216,6 @@ class FeatureExtractor:
             self.args.feature_name,
             self.args.confidence_threshold,
         )
-        print("get features feat_list", len(feat_list))
 
         return feat_list
 
@@ -236,17 +232,16 @@ class FeatureExtractor:
         np.save(os.path.join(self.args.output_folder, file_base_name), info)
 
     def extract_features(self):
-        print("extracting features")
         files = np.load(self.args.imdb_gt_file, allow_pickle=True)
         # files = sorted(files)
         # files = [files[i: i+1000] for i in range(0, len(files), 1000)][self.args.partition]
         for chunk in self._chunks(files, self.args.batch_size):
-            # try:
+            try:
                 features, infos = self.get_detectron_features(chunk)
                 for idx, c in enumerate(chunk):
                     self._save_feature(c["file_name"], features[idx], infos[idx])
-            # except BaseException:
-            #     continue
+            except BaseException:
+                continue
 
 
 if __name__ == "__main__":
