@@ -241,12 +241,12 @@ class FeatureExtractor:
         # files = sorted(files)
         # files = [files[i: i+1000] for i in range(0, len(files), 1000)][self.args.partition]
         for chunk in self._chunks(files, self.args.batch_size):
-            try:
+            # try:
                 features, infos = self.get_detectron_features(chunk)
                 for idx, c in enumerate(chunk):
                     self._save_feature(c["file_name"], features[idx], infos[idx])
-            except BaseException:
-                continue
+            # except BaseException:
+            #     continue
 
 
 if __name__ == "__main__":
