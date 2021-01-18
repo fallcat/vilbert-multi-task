@@ -173,7 +173,7 @@ class FeatureExtractor:
 
     def get_detectron_features(self, image_paths):
         img_tensor, im_scales, im_infos = [], [], []
-
+        print("image_paths", image_paths)
         for image_path in image_paths:
             im, im_scale, im_info = self._image_transform(image_path)
             img_tensor.append(im)
