@@ -182,6 +182,7 @@ class FeatureExtractor:
 
         # Image dimensions should be divisible by 32, to allow convolutions
         # in detector to work
+        print("img_tensor", img_tensor)
         current_img_list = to_image_list(img_tensor, size_divisible=32)
         current_img_list = current_img_list.to("cuda")
 
